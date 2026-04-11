@@ -322,6 +322,68 @@ h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; display: flex;
 }
 .edit-link:hover { text-decoration: underline; }
 
+/* ─── Lucky Buttons ─── */
+.lucky-group {
+  display: flex; gap: 0.5rem; margin-bottom: 0.5rem;
+}
+.lucky-btn {
+  flex: 1; padding: 0.7rem 0.6rem; border: 2px solid var(--warm);
+  border-radius: 12px; background: var(--card-bg); cursor: pointer;
+  font-family: var(--font); text-align: center;
+  transition: transform 0.1s, border-color 0.15s, background 0.15s;
+}
+.lucky-btn:hover { border-color: var(--primary); background: var(--accent); }
+.lucky-btn:active { transform: scale(0.96); }
+.lucky-icon { font-size: 1.4rem; display: block; margin-bottom: 0.2rem; }
+.lucky-label { font-size: 0.75rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+.lucky-sub { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+.lucky-result {
+  background: var(--gentle); border-radius: 12px; padding: 1rem;
+  text-align: center; animation: luckyFadeIn 0.3s ease;
+}
+@keyframes luckyFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.lucky-company { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+.lucky-reason { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; line-height: 1.4; }
+.lucky-sector-badge {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px;
+  font-size: 0.7rem; font-weight: 500; background: var(--warm); color: #1a1a2e;
+  margin-top: 0.3rem;
+}
+
+/* ─── Pro Toggle ─── */
+.pro-toggle {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5rem; margin-bottom: 0.8rem;
+}
+.pro-label { font-size: 0.8rem; color: var(--text-muted); }
+.pro-label.active { color: var(--primary); font-weight: 600; }
+.pro-switch {
+  position: relative; width: 44px; height: 24px;
+  background: var(--accent); border-radius: 12px;
+  cursor: pointer; border: none; transition: background 0.2s;
+}
+.pro-switch.on { background: var(--primary); }
+.pro-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.pro-switch.on::after { transform: translateX(20px); }
+
+.pro-input-area {
+  background: var(--gentle); border-radius: 10px; padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.pro-thinking {
+  text-align: center; padding: 1rem; color: var(--text-muted);
+  font-size: 0.9rem; font-style: italic;
+}
+
 </style>
 </head>
 <body>
@@ -1236,12 +1298,174 @@ function vTrade(a) {
   a.appendChild(navBar('TRADE'));
 }
 
+// ─── LUCKY LOGIC ───
+function luckyPreset() {
+  const pick = POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
+  S.luckyResult = pick;
+  S.luckySource = 'preset';
+  render();
+}
+
+async function luckyWebSearch() {
+  S.luckyLoading = true;
+  S.luckySource = 'web';
+  render();
+  try {
+    const proxy = 'https://corsproxy.io/?' + encodeURIComponent('https://query1.finance.yahoo.com/v1/finance/trending/US?count=20');
+    const resp = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+    const data = await resp.json();
+    const symbols = data.finance.result[0].quotes.map(q => q.symbol);
+    // Try to match one we know about, otherwise pick random from trending
+    const known = symbols.map(s => POPULAR_COMPANIES.find(c => c.symbol === s)).filter(Boolean);
+    if (known.length > 0) {
+      S.luckyResult = known[Math.floor(Math.random() * known.length)];
+    } else {
+      // Use a random trending symbol we don't have data for
+      const sym = symbols[Math.floor(Math.random() * symbols.length)];
+      S.luckyResult = { symbol: sym, name: sym, sector: 'Trending', why: 'Trending on Yahoo Finance right now. Do your own research before diving in.' };
+    }
+  } catch(e) {
+    // Fallback to preset if web fails
+    const pick = POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
+    S.luckyResult = pick;
+    S.luckyResult._fallback = true;
+  }
+  S.luckyLoading = false;
+  render();
+}
+
+async function luckyAI() {
+  const apiKey = profile && profile.claudeApiKey;
+  if (!apiKey) {
+    S.luckyResult = { symbol: '???', name: 'API Key Needed', sector: 'Settings', why: 'Add your Claude API key in Settings to unlock AI stock picks. The AI will analyse market trends and suggest a stock with reasoning.' };
+    S.luckySource = 'ai';
+    render();
+    return;
+  }
+
+  S.luckyLoading = true;
+  S.luckySource = 'ai';
+  render();
+
+  try {
+    const prompt = S.aiPrompt || 'Pick one stock for a beginner paper trading portfolio and explain why in 2-3 sentences. Consider current market conditions. Return JSON: {"symbol":"AAPL","name":"Apple Inc","sector":"Tech","why":"reason"}';
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    const data = await resp.json();
+    const text = data.content[0].text;
+    // Extract JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*?"symbol"[\s\S]*?\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      S.luckyResult = { symbol: parsed.symbol, name: parsed.name || parsed.symbol, sector: parsed.sector || 'AI Pick', why: parsed.why || parsed.reason || text };
+    } else {
+      S.luckyResult = { symbol: 'AI', name: 'AI Suggestion', sector: 'AI Pick', why: text };
+    }
+  } catch(e) {
+    S.luckyResult = { symbol: '!', name: 'AI Error', sector: 'Error', why: 'Could not reach Claude API. Check your key in Settings and try again.' };
+  }
+  S.luckyLoading = false;
+  render();
+}
+
 // ─── VIEW: BROWSE ───
 function vBrowse(a) {
   a.appendChild(el('div', { className: 'spacer' }));
   a.appendChild(el('h2', { className: 'center' }, 'Browse Companies'));
   a.appendChild(el('p', { className: 'sub-text' }, 'Find something you believe in. No rush.'));
   a.appendChild(el('div', { className: 'spacer' }));
+
+  // Pro mode toggle
+  const proToggle = el('div', { className: 'pro-toggle' });
+  proToggle.appendChild(el('span', { className: 'pro-label' + (!S.proMode ? ' active' : '') }, 'Free'));
+  const sw = el('button', {
+    className: 'pro-switch' + (S.proMode ? ' on' : ''),
+    'aria-label': 'Toggle Pro mode',
+    onClick: () => { S.proMode = !S.proMode; render(); },
+  });
+  proToggle.appendChild(sw);
+  proToggle.appendChild(el('span', { className: 'pro-label' + (S.proMode ? ' active' : '') }, 'Pro (AI)'));
+  a.appendChild(proToggle);
+
+  // Lucky buttons
+  const luckyGroup = el('div', { className: 'lucky-group' });
+
+  luckyGroup.appendChild(el('button', { className: 'lucky-btn', onClick: luckyPreset },
+    el('span', { className: 'lucky-icon' }, '\uD83C\uDFB2'),
+    el('span', { className: 'lucky-label' }, "I'm Feeling Lucky"),
+    el('span', { className: 'lucky-sub' }, 'Random from 50 picks'),
+  ));
+
+  luckyGroup.appendChild(el('button', { className: 'lucky-btn', onClick: luckyWebSearch },
+    el('span', { className: 'lucky-icon' }, '\uD83C\uDF10'),
+    el('span', { className: 'lucky-label' }, "I'm Feeling Lucky"),
+    el('span', { className: 'lucky-sub' }, 'Trending right now'),
+  ));
+
+  if (S.proMode) {
+    luckyGroup.appendChild(el('button', { className: 'lucky-btn', style: 'border-color: var(--primary);', onClick: luckyAI },
+      el('span', { className: 'lucky-icon' }, '\uD83E\uDDE0'),
+      el('span', { className: 'lucky-label' }, "AI Pick"),
+      el('span', { className: 'lucky-sub' }, 'Claude suggests'),
+    ));
+  }
+  a.appendChild(luckyGroup);
+
+  // AI custom prompt (pro mode only)
+  if (S.proMode) {
+    const proArea = el('div', { className: 'pro-input-area' });
+    proArea.appendChild(el('label', { style: 'font-size: 0.8rem; font-weight: 500;' }, 'Ask the AI anything about stocks:'));
+    const aiInp = el('textarea', {
+      className: 'input-field',
+      style: 'min-height: 50px; margin-top: 0.3rem; font-size: 0.85rem;',
+      placeholder: 'e.g. "Pick a UK dividend stock under £5" or "What\'s a good defensive ETF?"',
+      'aria-label': 'AI stock prompt',
+    });
+    aiInp.value = S.aiPrompt || '';
+    aiInp.addEventListener('input', () => { S.aiPrompt = aiInp.value; });
+    proArea.appendChild(aiInp);
+    a.appendChild(proArea);
+  }
+
+  // Lucky result
+  if (S.luckyLoading) {
+    a.appendChild(el('div', { className: 'pro-thinking' }, S.luckySource === 'ai' ? 'Claude is thinking...' : 'Searching trending stocks...'));
+  } else if (S.luckyResult) {
+    const r = S.luckyResult;
+    const result = el('div', { className: 'lucky-result' });
+    result.appendChild(el('div', { className: 'lucky-company' }, r.symbol + (r.symbol !== r.name ? ' — ' + r.name : '')));
+    if (r.sector) result.appendChild(el('span', { className: 'lucky-sector-badge' }, r.sector));
+    if (r.why) result.appendChild(el('div', { className: 'lucky-reason' }, r.why));
+    if (r._fallback) result.appendChild(el('div', { style: 'font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;' }, 'Web search failed — picked from presets instead'));
+
+    const resultBtns = el('div', { style: 'display: flex; gap: 0.4rem; justify-content: center; margin-top: 0.7rem;' });
+    if (r.symbol !== '???' && r.symbol !== '!' && r.symbol !== 'AI') {
+      resultBtns.appendChild(el('button', {
+        className: 'company-action', style: 'background: var(--primary); color: var(--btn-text);',
+        onClick: () => { S.luckyResult = null; go('TRADE', { tradeSymbol: r.symbol, tradeDir: 'BUY', tradeConviction: r.why || '' }); },
+      }, 'Trade this'));
+    }
+    resultBtns.appendChild(el('button', {
+      className: 'company-action',
+      onClick: () => { S.luckyResult = null; render(); },
+    }, 'Spin again'));
+    result.appendChild(resultBtns);
+    a.appendChild(result);
+    a.appendChild(el('div', { className: 'spacer' }));
+  }
 
   // Search
   const searchInp = el('input', {
@@ -1583,6 +1807,25 @@ function vSettings(a) {
   });
   apiCard.appendChild(apiInp);
   a.appendChild(apiCard);
+
+  // Claude API Key (Pro mode)
+  const claudeCard = el('div', { className: 'section-card', style: 'margin-bottom: 1rem;' });
+  claudeCard.appendChild(el('h3', null, 'Claude API Key (Pro Mode)'));
+  claudeCard.appendChild(el('p', { className: 'sub-text', style: 'text-align: left; margin-bottom: 0.5rem;' }, 'Unlocks AI stock picks in Browse. Get a key from console.anthropic.com.'));
+  const claudeInp = el('input', {
+    className: 'input-small',
+    type: 'password',
+    placeholder: 'sk-ant-...',
+    value: profile.claudeApiKey || '',
+    'aria-label': 'Claude API key',
+    style: 'width: 100%;',
+  });
+  claudeInp.addEventListener('change', () => {
+    profile.claudeApiKey = claudeInp.value.trim();
+    save('fos_profile', profile);
+  });
+  claudeCard.appendChild(claudeInp);
+  a.appendChild(claudeCard);
 
   // Currency
   const curCard = el('div', { className: 'section-card', style: 'margin-bottom: 1rem;' });
