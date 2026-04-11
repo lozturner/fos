@@ -1,0 +1,118 @@
+%%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#cce3de', 'primaryTextColor': '#3a3a3a', 'primaryBorderColor': '#6b9080', 'lineColor': '#6b9080', 'secondaryColor': '#eae4e9', 'tertiaryColor': '#dda77b' } } }%%
+
+flowchart TD
+    START((Open FOS)) --> RECOVER{"Incomplete session?"}
+    RECOVER -->|Yes| RESUME["Resume last view"]
+    RECOVER -->|No profile| WELCOME
+
+    subgraph WELCOME["Onboarding"]
+        W1["Morning, Loz. This is your fake trading account."]
+        W1 -->|"Let's set up"| W2["Pick starting balance"]
+        W1 -->|"Not right now"| EXIT_GENTLE["No rush. Come back whenever."]
+        W2 --> W3["Choose risk appetite"]
+        W3 -->|"I'm ready"| SAVE_PROFILE["Save profile + create portfolio"]
+    end
+
+    SAVE_PROFILE --> DASHBOARD
+
+    subgraph DASHBOARD["Portfolio Dashboard"]
+        D1["Portfolio value + P&L"]
+        D1 --> D2["Allocation bar"]
+        D2 --> D3["Holdings list with sparklines"]
+        D3 --> D4["Quick actions: Trade / Browse / Risk Map"]
+    end
+
+    DASHBOARD -->|Trade| TRADE
+    DASHBOARD -->|Browse| BROWSE
+    DASHBOARD -->|Risk Map| RISK
+    DASHBOARD -->|Bank| BANK
+    DASHBOARD -->|Settings| SETTINGS
+    DASHBOARD -->|Tap holding| TRADE
+
+    subgraph TRADE["Trade Screen"]
+        T1["Buy/Sell toggle"]
+        T1 --> T2["Search company or tap holding"]
+        T2 --> T3["Enter quantity"]
+        T3 --> T4["Running total + validation"]
+        T4 -->|New holding| T5["Why this company? + Category + Risk + Horizon"]
+        T4 -->|Existing| T6["Confirm trade"]
+        T5 --> T6
+        T6 -->|Confirm| EXECUTE["Execute trade"]
+        T6 -->|"Actually, never mind"| DASHBOARD
+    end
+
+    EXECUTE --> UPDATE_PORTFOLIO["Update cash + holdings + transactions"]
+    UPDATE_PORTFOLIO --> DASHBOARD
+
+    subgraph BROWSE["Company Browser"]
+        B1["Search bar"]
+        B1 --> B2["Category tabs: All / Watchlist / Tech / Finance / Energy / ETFs"]
+        B2 --> B3["Company cards with price"]
+        B3 -->|Trade| TRADE
+        B3 -->|Watch| WATCHLIST_ADD["Add to watchlist"]
+        B3 -->|Unwatch| WATCHLIST_REMOVE["Remove from watchlist"]
+    end
+
+    subgraph BANK["FOS Bank"]
+        BK1["Cash balance hero"]
+        BK1 --> BK2["Started with / In market summary"]
+        BK2 --> BK3["Transaction history"]
+        BK3 --> BK4["Export JSONL"]
+    end
+
+    subgraph RISK["Risk Quadrant"]
+        R1["2x2 grid: risk x time horizon"]
+        R1 --> R2["Holdings placed as chips in quadrants"]
+        R2 --> R3{"Stale conviction checks?"}
+        R3 -->|Yes| R4["Still believe in X?"]
+        R4 -->|"Yes, still in"| R5["Update conviction date"]
+        R4 -->|"Let me think"| TRADE
+        R3 -->|No| R6["All up to date"]
+    end
+
+    subgraph SETTINGS["Settings"]
+        S1["Data source: Live/Demo badge"]
+        S1 --> S2["Alpha Vantage API key"]
+        S2 --> S3["Currency: GBP/USD"]
+        S3 --> S4["Export all data"]
+        S4 --> S5["Copy portfolio for AI"]
+        S5 --> S6["Reset portfolio"]
+    end
+
+    subgraph PERSISTENCE["Data Layer"]
+        P1["fos_profile: name, balance, currency, risk"]
+        P2["fos_portfolio: cash + holdings array"]
+        P3["fos_transactions: chronological buy/sell log"]
+        P4["fos_watchlist: saved companies"]
+        P5["fos_price_cache: 15-min TTL price data"]
+        P6["fos_current: session recovery"]
+    end
+
+    subgraph API_LAYER["Price API"]
+        API1["Yahoo Finance via CORS proxy"]
+        API1 -->|Fail| API2["Alpha Vantage free tier"]
+        API2 -->|Fail| API3["Demo data fallback"]
+    end
+
+    subgraph ANTI_SHAME["Gentle Messaging"]
+        AS1["No real money. No real risk."]
+        AS2["This is pretend. You're just practising."]
+        AS3["Markets go up and down. That's normal."]
+        AS4["It's okay to change your mind."]
+        AS5["Every reset is a new lesson."]
+    end
+
+    %% Styling
+    style WELCOME fill:#cce3de,stroke:#6b9080
+    style DASHBOARD fill:#cce3de,stroke:#6b9080
+    style TRADE fill:#eae4e9,stroke:#6b9080
+    style BROWSE fill:#eae4e9,stroke:#6b9080
+    style BANK fill:#eae4e9,stroke:#6b9080
+    style RISK fill:#eae4e9,stroke:#6b9080
+    style SETTINGS fill:#eae4e9,stroke:#6b9080
+    style PERSISTENCE fill:#f7f5f0,stroke:#dda77b
+    style API_LAYER fill:#f7f5f0,stroke:#dda77b
+    style ANTI_SHAME fill:#eae4e9,stroke:#6b9080
+    style EXIT_GENTLE fill:#dda77b,stroke:#6b9080
+    style EXECUTE fill:#6b9080,stroke:#5a7d6e,color:#fff
+    style UPDATE_PORTFOLIO fill:#6b9080,stroke:#5a7d6e,color:#fff

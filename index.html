@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOS — Full of Shit | Paper Trading</title>
+<meta name="description" content="A free, open-source paper trading app. Practice investing with fake money. No sign-up. No real risk. Just learning.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f7f5f0;
+  --text: #3a3a3a;
+  --text-muted: #8a8a8a;
+  --primary: #6b9080;
+  --primary-hover: #5a7d6e;
+  --accent: #cce3de;
+  --warm: #dda77b;
+  --gentle: #eae4e9;
+  --card-bg: #fff;
+  --btn-text: #fff;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --gain: #6b9080;
+  --loss: #d4726a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a2e;
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --primary: #7db39a;
+    --primary-hover: #6a9f87;
+    --accent: #2a3a35;
+    --warm: #c4956e;
+    --gentle: #2a2535;
+    --card-bg: #252540;
+    --btn-text: #1a1a2e;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 2rem;
+  text-align: center;
+}
+
+.logo {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.logo-sub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
+.tagline {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  line-height: 1.4;
+}
+
+.tagline-muted {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.cta-group {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  max-width: 340px; margin: 2rem auto 0;
+}
+
+.btn {
+  display: block; padding: 0.9rem 1.5rem;
+  border: none; border-radius: 12px; font-size: 1.05rem;
+  font-family: var(--font); cursor: pointer;
+  text-align: center; text-decoration: none;
+  transition: transform 0.1s, opacity 0.1s;
+  font-weight: 500;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--primary); color: var(--btn-text); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-state { background: var(--accent); color: var(--text); }
+.btn-state:hover { background: var(--gentle); }
+.btn-outline {
+  background: transparent; color: var(--primary);
+  border: 2px solid var(--accent);
+}
+.btn-outline:hover { background: var(--accent); }
+
+.features {
+  max-width: 720px;
+  margin: 2rem auto 0;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 520px) {
+  .features { grid-template-columns: 1fr; }
+}
+
+.feature-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: var(--shadow);
+}
+
+.feature-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+.feature-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.3rem; }
+.feature-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+.stocks-section {
+  max-width: 720px;
+  margin: 3rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.stocks-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.stocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.stock-chip {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 0.5rem 0.7rem;
+  box-shadow: var(--shadow);
+  text-align: center;
+  font-size: 0.8rem;
+}
+.stock-symbol { font-weight: 700; color: var(--primary); font-size: 0.9rem; }
+.stock-name { color: var(--text-muted); font-size: 0.7rem; margin-top: 0.1rem; }
+.stock-sector {
+  display: inline-block; margin-top: 0.2rem;
+  font-size: 0.6rem; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--warm);
+}
+
+.screenshot-section {
+  max-width: 720px;
+  margin: 3rem auto 0;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.screenshot-frame {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+  max-width: 380px;
+  margin: 1rem auto 0;
+}
+
+.screenshot-bar {
+  background: var(--accent);
+  padding: 0.5rem 1rem;
+  display: flex; gap: 0.4rem; align-items: center;
+}
+.screenshot-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.screenshot-dot:nth-child(1) { background: #d4726a; }
+.screenshot-dot:nth-child(2) { background: #dda77b; }
+.screenshot-dot:nth-child(3) { background: #6b9080; }
+
+.screenshot-body {
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.mock-balance-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.mock-balance { font-size: 2rem; font-weight: 700; color: var(--text); }
+.mock-pnl { font-size: 0.85rem; font-weight: 600; color: var(--gain); margin-top: 0.1rem; }
+.mock-bar { height: 6px; border-radius: 3px; background: var(--accent); margin-top: 0.8rem; display: flex; overflow: hidden; }
+.mock-bar-seg { height: 100%; }
+
+.mock-holding {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--accent);
+}
+.mock-holding:last-child { border-bottom: none; }
+.mock-spark { width: 50px; height: 20px; }
+.mock-h-info { flex: 1; }
+.mock-h-sym { font-weight: 600; font-size: 0.85rem; }
+.mock-h-detail { font-size: 0.7rem; color: var(--text-muted); }
+.mock-h-val { text-align: right; font-weight: 500; font-size: 0.85rem; }
+.mock-h-pnl { font-size: 0.7rem; color: var(--gain); text-align: right; }
+
+.footer {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid var(--accent);
+}
+.footer-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+.footer-link { color: var(--primary); text-decoration: none; }
+.footer-link:hover { text-decoration: underline; }
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">FOS</div>
+  <div class="logo-sub">Full of Shit</div>
+  <p class="tagline">Practice investing with fake money.<br>No sign-up. No real risk. Just learning.</p>
+  <p class="tagline-muted">A free, open-source paper trading app that runs entirely in your browser. Track 50+ stocks, compare broker fees, and see what your portfolio would be worth.</p>
+
+  <div class="cta-group">
+    <a href="fos.html" class="btn btn-primary">Launch the App</a>
+    <a href="fos-portfolio-10k.xlsx" class="btn btn-state" download>Download Spreadsheet (10k)</a>
+    <a href="fos-portfolio-1k.xlsx" class="btn btn-outline" download>Download Spreadsheet (1k)</a>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F4B0;</div>
+    <div class="feature-title">Paper Trading</div>
+    <div class="feature-desc">Start with fake money. Buy and sell real stocks. See what your portfolio would actually be worth.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F4C8;</div>
+    <div class="feature-title">Live Prices</div>
+    <div class="feature-desc">Real market data via Yahoo Finance. Falls back to demo data offline. 15-minute cache.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F3AF;</div>
+    <div class="feature-title">Conviction Tracker</div>
+    <div class="feature-desc">Record why you picked each stock. Get gentle check-ins asking if you still believe.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F5FA;&#xFE0F;</div>
+    <div class="feature-title">Risk Quadrant</div>
+    <div class="feature-desc">Visualise your holdings on a risk vs. time horizon map. See where your money actually sits.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F3E6;</div>
+    <div class="feature-title">Broker Comparison</div>
+    <div class="feature-desc">See what your trades would cost at 8 real UK brokers. Find the cheapest option for you.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F4CB;</div>
+    <div class="feature-title">Spreadsheet Mode</div>
+    <div class="feature-desc">Download Excel dashboards with formulas, charts, and broker fee calculators. Open in Google Sheets.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x1F512;</div>
+    <div class="feature-title">100% Private</div>
+    <div class="feature-desc">Everything stored in your browser. No accounts, no tracking, no server. Your data stays yours.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">&#x2764;&#xFE0F;</div>
+    <div class="feature-title">Anti-Shame Design</div>
+    <div class="feature-desc">Gentle messaging throughout. No judgment. Escape routes on every screen. Learning, not pressure.</div>
+  </div>
+</div>
+
+<!-- Mock screenshot -->
+<div class="screenshot-section">
+  <h2 style="font-size: 1.2rem; font-weight: 600;">What it looks like</h2>
+  <div class="screenshot-frame">
+    <div class="screenshot-bar">
+      <span class="screenshot-dot"></span>
+      <span class="screenshot-dot"></span>
+      <span class="screenshot-dot"></span>
+    </div>
+    <div class="screenshot-body">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong style="font-size: 1.1rem;">FOS</strong>
+        <span style="background: var(--gain); color: var(--btn-text); padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase;">Live</span>
+      </div>
+      <div style="margin-top: 0.8rem;">
+        <div class="mock-balance-label">Portfolio Value</div>
+        <div class="mock-balance">&pound;12,847</div>
+        <div class="mock-pnl">+&pound;2,847.00 (+28.47%)</div>
+      </div>
+      <div class="mock-bar">
+        <div class="mock-bar-seg" style="width: 30%; background: var(--accent);"></div>
+        <div class="mock-bar-seg" style="width: 25%; background: #89b4fa;"></div>
+        <div class="mock-bar-seg" style="width: 20%; background: #a6e3a1;"></div>
+        <div class="mock-bar-seg" style="width: 15%; background: #cba6f7;"></div>
+        <div class="mock-bar-seg" style="width: 10%; background: #f9e2af;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 0.3rem; font-size: 0.65rem; color: var(--text-muted);">
+        <span>Cash</span><span>Tech</span><span>Finance</span><span>Energy</span><span>ETF</span>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <div class="mock-holding">
+          <svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,18 8,15 16,12 24,14 32,10 40,8 50,5" fill="none" stroke="var(--gain)" stroke-width="1.5"/></svg>
+          <div class="mock-h-info">
+            <div class="mock-h-sym">AAPL</div>
+            <div class="mock-h-detail">10 shares</div>
+          </div>
+          <div>
+            <div class="mock-h-val">&pound;2,605</div>
+            <div class="mock-h-pnl">+30.17%</div>
+          </div>
+        </div>
+        <div class="mock-holding">
+          <svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,16 10,14 20,10 30,12 40,6 50,4" fill="none" stroke="var(--gain)" stroke-width="1.5"/></svg>
+          <div class="mock-h-info">
+            <div class="mock-h-sym">NVDA</div>
+            <div class="mock-h-detail">3 shares</div>
+          </div>
+          <div>
+            <div class="mock-h-val">&pound;3,420</div>
+            <div class="mock-h-pnl">+18.42%</div>
+          </div>
+        </div>
+        <div class="mock-holding">
+          <svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,10 10,11 20,9 30,10 40,8 50,7" fill="none" stroke="var(--gain)" stroke-width="1.5"/></svg>
+          <div class="mock-h-info">
+            <div class="mock-h-sym">VOO</div>
+            <div class="mock-h-detail">5 shares</div>
+          </div>
+          <div>
+            <div class="mock-h-val">&pound;2,580</div>
+            <div class="mock-h-pnl">+6.12%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 50 Stocks -->
+<div class="stocks-section">
+  <h2 class="stocks-title">50 stocks across 10 sectors</h2>
+  <div class="stocks-grid" id="stocks-grid"></div>
+</div>
+
+<div class="footer">
+  <p class="footer-text">
+    Built by <a href="https://github.com/lozturner" class="footer-link">Loz</a>.
+    Open source on <a href="https://github.com/lozturner/fos" class="footer-link">GitHub</a>.
+    <br>No real money. No real risk. Just a safe place to practise.
+  </p>
+</div>
+
+<script>
+const stocks = [
+  { s: 'AAPL', n: 'Apple', c: 'Tech' }, { s: 'MSFT', n: 'Microsoft', c: 'Tech' },
+  { s: 'GOOGL', n: 'Alphabet', c: 'Tech' }, { s: 'AMZN', n: 'Amazon', c: 'Tech' },
+  { s: 'NVDA', n: 'NVIDIA', c: 'Tech' }, { s: 'META', n: 'Meta', c: 'Tech' },
+  { s: 'AMD', n: 'AMD', c: 'Tech' }, { s: 'CRM', n: 'Salesforce', c: 'Tech' },
+  { s: 'PLTR', n: 'Palantir', c: 'Tech' }, { s: 'SHOP', n: 'Shopify', c: 'Tech' },
+  { s: 'NET', n: 'Cloudflare', c: 'Tech' }, { s: 'SNOW', n: 'Snowflake', c: 'Tech' },
+  { s: 'LLOY.L', n: 'Lloyds', c: 'Finance' }, { s: 'BARC.L', n: 'Barclays', c: 'Finance' },
+  { s: 'JPM', n: 'JPMorgan', c: 'Finance' }, { s: 'V', n: 'Visa', c: 'Finance' },
+  { s: 'SQ', n: 'Block', c: 'Finance' }, { s: 'COIN', n: 'Coinbase', c: 'Finance' },
+  { s: 'BP.L', n: 'BP', c: 'Energy' }, { s: 'SHEL.L', n: 'Shell', c: 'Energy' },
+  { s: 'ENPH', n: 'Enphase', c: 'Energy' }, { s: 'NEE', n: 'NextEra', c: 'Energy' },
+  { s: 'XOM', n: 'Exxon', c: 'Energy' },
+  { s: 'AZN.L', n: 'AstraZeneca', c: 'Health' }, { s: 'LLY', n: 'Eli Lilly', c: 'Health' },
+  { s: 'UNH', n: 'UnitedHealth', c: 'Health' }, { s: 'JNJ', n: 'J&J', c: 'Health' },
+  { s: 'NVO', n: 'Novo Nordisk', c: 'Health' },
+  { s: 'COST', n: 'Costco', c: 'Consumer' }, { s: 'NKE', n: 'Nike', c: 'Consumer' },
+  { s: 'SBUX', n: 'Starbucks', c: 'Consumer' }, { s: 'MCD', n: "McDonald's", c: 'Consumer' },
+  { s: 'PG', n: 'P&G', c: 'Consumer' },
+  { s: 'NFLX', n: 'Netflix', c: 'Media' }, { s: 'DIS', n: 'Disney', c: 'Media' },
+  { s: 'SPOT', n: 'Spotify', c: 'Media' }, { s: 'RBLX', n: 'Roblox', c: 'Media' },
+  { s: 'VOO', n: 'S&P 500', c: 'ETF' }, { s: 'VWRL.L', n: 'All-World', c: 'ETF' },
+  { s: 'QQQ', n: 'Nasdaq 100', c: 'ETF' }, { s: 'ARKK', n: 'ARK Innov', c: 'ETF' },
+  { s: 'VUSA.L', n: 'S&P (UK)', c: 'ETF' },
+  { s: 'TSLA', n: 'Tesla', c: 'Auto' }, { s: 'VOD.L', n: 'Vodafone', c: 'Telecoms' },
+  { s: 'BA', n: 'Boeing', c: 'Industrial' }, { s: 'LMT', n: 'Lockheed', c: 'Industrial' },
+  { s: 'CAT', n: 'Caterpillar', c: 'Industrial' }, { s: 'DE', n: 'Deere', c: 'Industrial' },
+  { s: 'ABNB', n: 'Airbnb', c: 'Travel' }, { s: 'UBER', n: 'Uber', c: 'Travel' },
+];
+const grid = document.getElementById('stocks-grid');
+stocks.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'stock-chip';
+  d.innerHTML = '<div class="stock-symbol">' + s.s + '</div><div class="stock-name">' + s.n + '</div><div class="stock-sector">' + s.c + '</div>';
+  grid.appendChild(d);
+});
+</script>
+
+</body>
+</html>

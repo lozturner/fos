@@ -1,0 +1,17 @@
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code
+.claude/
+*.pyw
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Local dev
+whisper-server.py
+spend-notify.py
