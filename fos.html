@@ -436,6 +436,32 @@ body {
 }
 .ext-link-sm:hover { color: var(--primary); border-color: var(--primary); }
 
+/* ─── SELL ALL BUTTON ─── */
+.sell-all-btn {
+  padding: 0.3rem 0.7rem; border-radius: 7px; font-size: 0.72rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer; border: 1.5px solid var(--loss);
+  background: transparent; color: var(--loss); margin-right: 0.3rem;
+  transition: all 0.1s;
+}
+.sell-all-btn:hover { background: var(--loss); color: #fff; }
+.sell-all-btn:active { transform: scale(0.95); }
+
+/* ─── CHART CARD ─── */
+.chart-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 0.9rem 1rem;
+  margin-bottom: 0.8rem;
+}
+.chart-label {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem;
+}
+.chart-svg-wrap { width: 100%; overflow: visible; }
+.chart-empty {
+  font-size: 0.78rem; color: var(--muted); padding: 0.8rem 0;
+  text-align: center; line-height: 1.5;
+}
+
 /* ─── TIME WINDOW BAR ─── */
 .tw-bar {
   display: flex; gap: 0.3rem; margin-bottom: 0.6rem; align-items: center;
@@ -783,6 +809,7 @@ let portfolio = null;
 let transactions = [];
 let priceCache = {};
 let historicalCache = {}; // symbol+window → { price, fetchedAt }
+let snapshots = [];       // [{ ts, value }] — portfolio value over time
 let dataMode = 'sim'; // internal only — never shown to user
 
 let S = {
@@ -874,9 +901,15 @@ function loadState() {
   try { portfolio = JSON.parse(localStorage.getItem('fos_portfolio')); } catch(e) {}
   try { transactions = JSON.parse(localStorage.getItem('fos_tx')) || []; } catch(e) {}
   try { priceCache = JSON.parse(localStorage.getItem('fos_prices')) || {}; } catch(e) {}
+  try { snapshots = JSON.parse(localStorage.getItem('fos_snapshots')) || []; } catch(e) {}
   try {
     const saved = JSON.parse(localStorage.getItem('fos_ui'));
-    if (saved) { S.proMode = !!saved.proMode; S.historyOpen = !!saved.historyOpen; }
+    if (saved) {
+      S.proMode = !!saved.proMode;
+      S.historyOpen = !!saved.historyOpen;
+      if (saved.realCalcBroker) S.realCalcBroker = saved.realCalcBroker;
+      if (saved.liveRefreshMs) S.liveRefreshMs = saved.liveRefreshMs;
+    }
   } catch(e) {}
 }
 
@@ -886,7 +919,21 @@ function saveAll() {
   save('fos_portfolio', portfolio);
   save('fos_tx', transactions);
   save('fos_prices', priceCache);
-  save('fos_ui', { proMode: S.proMode, historyOpen: S.historyOpen });
+  save('fos_snapshots', snapshots.slice(-500));
+  save('fos_ui', { proMode: S.proMode, historyOpen: S.historyOpen, realCalcBroker: S.realCalcBroker, liveRefreshMs: S.liveRefreshMs });
+}
+
+// ─── SNAPSHOT SYSTEM ───
+function recordSnapshot(forced) {
+  if (!portfolio) return;
+  const value = portfolioTotal();
+  const ts = Date.now();
+  const last = snapshots[snapshots.length - 1];
+  // Throttle auto-snapshots to 1 per 2 minutes; forced (on trade) always records
+  if (!forced && last && (ts - last.ts) < 120000) return;
+  snapshots.push({ ts, value });
+  if (snapshots.length > 500) snapshots = snapshots.slice(-500);
+  save('fos_snapshots', snapshots);
 }
 
 // ─── RENDER ENGINE ───
@@ -912,6 +959,7 @@ function render() {
   renderLucky(a);
   renderSlip(a);
   renderPositions(a);
+  renderChart(a);
   renderRealCalc(a);
   renderMakeItReal(a);
   renderHistory(a);
@@ -1122,6 +1170,7 @@ function executeBuy(symbol, name, qty, price) {
   }
   transactions.push({ id: uid(), type:'BUY', symbol, name, qty, price, total, timestamp: new Date().toISOString() });
   saveAll();
+  recordSnapshot(true);
   return true;
 }
 
@@ -1140,7 +1189,20 @@ function executeSell(symbol, qty, price) {
   if (h.lots.length === 0) portfolio.holdings = portfolio.holdings.filter(x => x.symbol !== symbol);
   transactions.push({ id: uid(), type:'SELL', symbol, name: h.name || symbol, qty, price, total, timestamp: new Date().toISOString() });
   saveAll();
+  recordSnapshot(true);
   return true;
+}
+
+function sellAll() {
+  if (!portfolio || portfolio.holdings.length === 0) return;
+  const names = portfolio.holdings.map(h => h.symbol).join(', ');
+  if (!confirm('Sell everything? (' + names + ')\nProceeds go back to cash.')) return;
+  const toSell = [...portfolio.holdings];
+  for (const h of toSell) {
+    const price = getPrice(h.symbol);
+    if (price) executeSell(h.symbol, holdingQty(h), price);
+  }
+  render();
 }
 
 // ─── SLIP LOGIC ───
@@ -1297,6 +1359,13 @@ function renderHeader(a) {
   row.appendChild(vb);
 
   const right = el('div', { className:'header-right' });
+  if (portfolio && portfolio.holdings.length > 0) {
+    right.appendChild(el('button', {
+      className: 'sell-all-btn',
+      title: 'Sell everything',
+      onClick: sellAll,
+    }, 'Sell all'));
+  }
   const refreshBtn = el('button', {
     className:'refresh-btn' + (S.refreshing ? ' spinning' : ''),
     title:'Refresh prices',
@@ -1649,12 +1718,106 @@ function renderPositions(a) {
   }
 }
 
+// ─── RENDER: EARNINGS CHART + HISTOGRAM ───
+function renderChart(a) {
+  if (!portfolio || portfolio.holdings.length === 0) return;
+
+  const snaps = snapshots.length >= 2 ? snapshots : null;
+  const holdings = portfolio.holdings;
+
+  const card = el('div', { className:'chart-card' });
+
+  // ── Portfolio value over time ──
+  card.appendChild(el('div', { className:'chart-label' }, 'Earnings over time'));
+
+  if (snaps) {
+    const W = 460, H = 110;
+    const values = snaps.map(s => s.value);
+    const times  = snaps.map(s => s.ts);
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const rangeV = (maxV - minV) || 1;
+    const minT = times[0], maxT = times[times.length - 1];
+    const rangeT = (maxT - minT) || 1;
+    const pad = { l: 2, r: 2, t: 8, b: 20 };
+    const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+    const xOf = t => (pad.l + ((t - minT) / rangeT) * cw).toFixed(1);
+    const yOf = v => (pad.t + (1 - (v - minV) / rangeV) * ch).toFixed(1);
+    const pts = snaps.map(s => xOf(s.ts) + ',' + yOf(s.value)).join(' ');
+    const isUp = values[values.length - 1] >= values[0];
+    const col = isUp ? '#5cbf8a' : '#d46a6a';
+    const colA = isUp ? 'rgba(92,191,138,0.12)' : 'rgba(212,106,106,0.12)';
+    const baseY = (pad.t + ch).toFixed(1);
+    const areaPts = xOf(minT) + ',' + baseY + ' ' + pts + ' ' + xOf(maxT) + ',' + baseY;
+
+    const fmtAgo = ts => {
+      const m = Math.round((Date.now() - ts) / 60000);
+      if (m < 1) return 'now';
+      if (m < 60) return m + 'm ago';
+      const h = Math.round(m / 60);
+      if (h < 24) return h + 'h ago';
+      return Math.round(h / 24) + 'd ago';
+    };
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.style.cssText = 'display:block;overflow:visible;';
+    svg.innerHTML =
+      '<polygon points="' + areaPts + '" fill="' + colA + '" stroke="none"/>' +
+      '<polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + xOf(maxT) + '" cy="' + yOf(values[values.length-1]) + '" r="3" fill="' + col + '"/>' +
+      '<text x="' + pad.l + '" y="' + (H-4) + '" font-size="9" fill="rgba(128,128,128,0.8)" font-family="system-ui">' + fmtAgo(minT) + '</text>' +
+      '<text x="' + (W-pad.r) + '" y="' + (H-4) + '" font-size="9" fill="rgba(128,128,128,0.8)" font-family="system-ui" text-anchor="end">now</text>' +
+      '<text x="' + pad.l + '" y="14" font-size="9" fill="rgba(128,128,128,0.8)" font-family="system-ui">' + fmtShort(maxV) + '</text>' +
+      '<text x="' + pad.l + '" y="' + (H-22) + '" font-size="9" fill="rgba(128,128,128,0.8)" font-family="system-ui">' + fmtShort(minV) + '</text>';
+    card.appendChild(el('div', { className:'chart-svg-wrap' }, svg));
+  } else {
+    card.appendChild(el('div', { className:'chart-empty' }, 'Chart builds up as you trade — buy something and prices will be tracked here.'));
+  }
+
+  // ── Position histogram ──
+  card.appendChild(el('div', { className:'chart-label', style:'margin-top:0.8rem' }, 'What you hold'));
+
+  const totalVal = holdings.reduce((s, h) => s + holdingValue(h), 0) + portfolio.cash;
+  const allBars = [
+    ...holdings.map(h => ({ label: h.symbol, value: holdingValue(h), pnl: holdingPnL(h), isCash: false })),
+    { label: 'Cash', value: portfolio.cash, pnl: 0, isCash: true },
+  ].filter(b => b.value > 0);
+
+  const histW = 460;
+  const barH = 18, gap = 5, labelW = 48, valW = 48;
+  const maxBarW = histW - labelW - valW - 10;
+  const maxVal = Math.max(...allBars.map(b => b.value));
+  const svgH = allBars.length * (barH + gap);
+
+  const hist = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  hist.setAttribute('width', '100%');
+  hist.setAttribute('viewBox', '0 0 ' + histW + ' ' + svgH);
+  hist.style.cssText = 'display:block;overflow:visible;';
+
+  let inner = '';
+  allBars.forEach((b, i) => {
+    const y = i * (barH + gap);
+    const bw = Math.max(3, (b.value / maxVal) * maxBarW);
+    const col = b.isCash ? 'rgba(128,128,128,0.35)' : b.pnl >= 0 ? 'rgba(92,191,138,0.7)' : 'rgba(212,106,106,0.7)';
+    const pct = ((b.value / totalVal) * 100).toFixed(0) + '%';
+    inner +=
+      '<text x="' + (labelW-4) + '" y="' + (y+barH-4) + '" font-size="9.5" fill="rgba(150,150,150,0.9)" font-family="system-ui" text-anchor="end">' + b.label + '</text>' +
+      '<rect x="' + labelW + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="' + barH + '" fill="' + col + '" rx="3"/>' +
+      '<text x="' + (labelW + bw + 5) + '" y="' + (y+barH-4) + '" font-size="9" fill="rgba(150,150,150,0.9)" font-family="system-ui">' + fmtShort(b.value) + ' · ' + pct + '</text>';
+  });
+  hist.innerHTML = inner;
+  card.appendChild(el('div', { className:'chart-svg-wrap' }, hist));
+
+  a.appendChild(card);
+}
+
 // ─── RENDER: REAL MONEY CALCULATOR ───
 const BROKER_FEES = {
-  'T212':  { name:'Trading 212', perTrade: 0,     currency:'GBP', stampDuty: true },
-  'FREE':  { name:'Freetrade',   perTrade: 0,     currency:'GBP', stampDuty: true },
-  'HL':    { name:'Hargreaves Lansdown', perTrade: 11.95, currency:'GBP', stampDuty: true },
-  'AJB':   { name:'AJ Bell',     perTrade: 9.95,  currency:'GBP', stampDuty: true },
+  'T212':  { name:'Trading 212',        perTrade: 0,     fxRate: 0.0015, stampDuty: true },
+  'FREE':  { name:'Freetrade Basic',    perTrade: 0,     fxRate: 0.0099, stampDuty: true },
+  'HL':    { name:'Hargreaves Lansdown',perTrade: 11.95, fxRate: 0.0100, stampDuty: true },
+  'AJB':   { name:'AJ Bell',           perTrade: 9.95,  fxRate: 0.0100, stampDuty: true },
 };
 
 const REFRESH_OPTIONS = [
@@ -1715,20 +1878,24 @@ function renderRealCalc(a) {
     const cost = holdingCost(h);
     const value = price ? price * qty : cost;
     const tradeFee = broker.perTrade;
-    // Stamp duty: 0.5% on UK shares (symbols ending .L) bought, not on ETFs/US
     const isUK = h.symbol.endsWith('.L');
     const isETF = (POPULAR_COMPANIES.find(c => c.symbol === h.symbol) || UNDERDOG_COMPANIES.find(c => c.symbol === h.symbol) || {}).sector === 'ETF';
+    // Stamp duty: 0.5% on UK non-ETF share buys
     const stampRate = (broker.stampDuty && isUK && !isETF) ? 0.005 : 0;
     const stampDuty = cost * stampRate;
-    const totalFeeForPosition = tradeFee + stampDuty;
+    // FX: applies on both buy and sell for non-GBP symbols
+    const isForeign = !isUK;
+    const fxFee = isForeign ? (cost * broker.fxRate + value * broker.fxRate) : 0;
+    const totalFeeForPosition = tradeFee + stampDuty + fxFee;
     totalInvested += cost + totalFeeForPosition;
     totalCurrentValue += value;
-    rows.push({ h, price, qty, cost, value, tradeFee, stampDuty, totalFeeForPosition });
+    rows.push({ h, price, qty, cost, value, tradeFee, stampDuty, fxFee, totalFeeForPosition });
   }
 
   const totalTradeFees = rows.reduce((s, r) => s + r.tradeFee, 0);
   const totalStampDuty = rows.reduce((s, r) => s + r.stampDuty, 0);
-  const totalAllFees = totalTradeFees + totalStampDuty;
+  const totalFxFees = rows.reduce((s, r) => s + r.fxFee, 0);
+  const totalAllFees = totalTradeFees + totalStampDuty + totalFxFees;
   const realStartingCash = portfolio ? portfolio.cash + totalInvested : 0;
   const realCurrentValue = portfolio.cash + totalCurrentValue - totalAllFees;
   const realPnl = realCurrentValue - realStartingCash;
@@ -1765,9 +1932,16 @@ function renderRealCalc(a) {
 
   if (totalStampDuty > 0) {
     const sRow = el('div', { className:'realcalc-fee-row' });
-    sRow.appendChild(el('span', null, 'Stamp duty (0.5% on UK shares)'));
+    sRow.appendChild(el('span', null, 'Stamp duty (0.5% on UK shares, buy only)'));
     sRow.appendChild(el('span', { className:'pnl-dn' }, '−' + fmtShort(totalStampDuty)));
     feeTable.appendChild(sRow);
+  }
+
+  if (totalFxFees > 0) {
+    const fxRow = el('div', { className:'realcalc-fee-row' });
+    fxRow.appendChild(el('span', null, 'FX conversion (' + (broker.fxRate * 100).toFixed(2) + '% each way, US/foreign stocks)'));
+    fxRow.appendChild(el('span', { className:'pnl-dn' }, '−' + fmtShort(totalFxFees)));
+    feeTable.appendChild(fxRow);
   }
 
   const totRow = el('div', { className:'realcalc-fee-row realcalc-fee-total' });
@@ -2002,6 +2176,7 @@ function startAutoRefresh() {
         await new Promise(r => setTimeout(r, 300));
       }
       lastTickAt = Date.now();
+      recordSnapshot(false);
       if (portfolio.holdings.length > 0) render();
     }
   }, fetchMs);
@@ -2009,6 +2184,7 @@ function startAutoRefresh() {
 
 // ─── INIT ───
 loadState();
+recordSnapshot(true); // baseline on every page load
 render();
 startAutoRefresh();
 </script>
