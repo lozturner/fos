@@ -244,309 +244,197 @@ body {
 }
 .cash-bar span strong { color: var(--text); font-weight: 600; }
 
-/* ─── LUCKY SECTION ─── */
-.lucky-section { margin-bottom: 1rem; }
-
-.lucky-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
+/* ─── LUCKY BUTTONS ─── */
+.lucky-section { margin-bottom: 0.8rem; }
+.lucky-buttons { display: flex; gap: 0.5rem; margin-bottom: 0.4rem; }
 .lucky-btn {
-  flex: 1;
-  padding: 0.9rem 0.5rem;
-  border: 2px solid var(--warm);
-  border-radius: var(--radius);
-  background: var(--card);
-  cursor: pointer;
-  font-family: var(--font);
-  text-align: center;
-  transition: transform 0.1s, border-color 0.15s, background 0.15s;
+  flex: 1; padding: 0.8rem 0.4rem;
+  border: 2px solid var(--warm); border-radius: var(--radius);
+  background: var(--card); cursor: pointer; font-family: var(--font);
+  text-align: center; transition: transform 0.1s, border-color 0.15s, background 0.15s;
 }
 .lucky-btn:hover { border-color: var(--primary); background: var(--accent); }
-.lucky-btn:active { transform: scale(0.96); }
+.lucky-btn:active { transform: scale(0.95); }
 .lucky-btn.ai-btn { border-color: var(--primary); }
-.lucky-icon { font-size: 1.4rem; display: block; margin-bottom: 0.15rem; }
-.lucky-label { font-size: 0.8rem; font-weight: 600; color: var(--text); line-height: 1.2; }
-.lucky-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.1rem; }
+.lucky-icon { font-size: 1.3rem; display: block; margin-bottom: 0.1rem; }
+.lucky-label { font-size: 0.75rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.lucky-sub { font-size: 0.6rem; color: var(--muted); margin-top: 0.05rem; }
 
 .pro-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  font-size: 0.75rem;
-  color: var(--muted);
+  display: flex; align-items: center; gap: 0.5rem;
+  justify-content: flex-end; font-size: 0.72rem; color: var(--muted);
 }
 .pro-row .active-label { color: var(--primary); font-weight: 600; }
 .pro-switch {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  background: var(--accent);
-  border-radius: 10px;
-  cursor: pointer;
-  border: none;
+  position: relative; width: 34px; height: 19px;
+  background: var(--accent); border-radius: 10px; cursor: pointer; border: none;
   transition: background 0.2s;
 }
 .pro-switch.on { background: var(--primary); }
 .pro-switch::after {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: var(--card);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform 0.2s;
 }
-.pro-switch.on::after { transform: translateX(16px); }
-
-.ai-prompt-row {
-  margin-top: 0.5rem;
-  display: flex;
-  gap: 0.4rem;
-}
+.pro-switch.on::after { transform: translateX(15px); }
+.ai-prompt-row { margin-top: 0.4rem; display: flex; gap: 0.4rem; }
 .ai-input {
-  flex: 1;
-  padding: 0.55rem 0.8rem;
-  border: 1.5px solid var(--accent);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-family: var(--font);
-  background: var(--card);
-  color: var(--text);
+  flex: 1; padding: 0.5rem 0.7rem; border: 1.5px solid var(--accent); border-radius: 8px;
+  font-size: 0.82rem; font-family: var(--font); background: var(--card); color: var(--text);
 }
 .ai-input:focus { outline: none; border-color: var(--primary); }
 
-/* ─── REVEAL CARD ─── */
-.reveal-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 1.1rem 1.2rem;
-  box-shadow: var(--shadow);
-  margin-bottom: 1.2rem;
-  animation: revealIn 0.25s ease;
-}
+/* ─── SLIP (betting slip accumulator) ─── */
 @keyframes revealIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  from { opacity: 0; transform: translateY(-5px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.reveal-loading {
-  text-align: center;
-  padding: 1.5rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-style: italic;
+.slip-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); margin-bottom: 1rem;
+  overflow: hidden; animation: revealIn 0.2s ease;
 }
-.reveal-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+.slip-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0.9rem; background: var(--gentle);
+  border-bottom: 1px solid var(--accent);
 }
-.reveal-company { flex: 1; }
-.reveal-ticker {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--primary);
-  letter-spacing: -0.01em;
+.slip-title {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted);
 }
-.reveal-name { font-size: 0.85rem; color: var(--muted); margin-top: 0.1rem; }
-.reveal-sector-badge {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.2rem 0.55rem;
-  border-radius: 20px;
-  background: var(--warm);
-  color: #2e2e2e;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 0.2rem;
+.slip-total { font-size: 0.85rem; font-weight: 700; }
+.slip-row {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--accent);
+  animation: revealIn 0.2s ease;
 }
-.reveal-price-row {
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin-bottom: 0.5rem;
+.slip-row:last-of-type { border-bottom: none; }
+.slip-sym { font-weight: 800; font-size: 0.9rem; min-width: 3.5rem; }
+.slip-name { flex: 1; font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slip-price { font-size: 0.8rem; font-weight: 600; }
+.slip-qty-ctrl { display: flex; align-items: center; gap: 0; border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+.slip-qty-btn {
+  background: var(--accent); border: none; padding: 0.3rem 0.5rem; font-size: 0.85rem;
+  cursor: pointer; color: var(--text); font-family: var(--font); transition: background 0.1s; line-height: 1;
 }
-.reveal-price-row strong { color: var(--text); font-weight: 600; }
-.reveal-why {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--text);
-  background: var(--gentle);
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  margin-bottom: 0.8rem;
+.slip-qty-btn:hover { background: var(--primary); color: var(--btn-text); }
+.slip-qty-val {
+  padding: 0.25rem 0.4rem; font-size: 0.8rem; font-weight: 600; min-width: 1.8rem;
+  text-align: center; border: none; background: var(--card); color: var(--text); font-family: var(--font);
 }
-.reveal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.slip-cost { font-size: 0.78rem; font-weight: 600; min-width: 3.5rem; text-align: right; }
+.slip-remove {
+  background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem;
+  padding: 0.1rem 0.2rem; line-height: 1; transition: color 0.1s;
 }
-.qty-stepper {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  border: 1.5px solid var(--accent);
-  border-radius: 8px;
-  overflow: hidden;
+.slip-remove:hover { color: var(--loss); }
+.slip-loading { padding: 1rem; text-align: center; color: var(--muted); font-size: 0.85rem; font-style: italic; }
+.slip-pending {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem;
+  border-top: 1px dashed var(--accent); background: var(--gentle);
 }
-.qty-btn {
-  background: var(--accent);
-  border: none;
-  padding: 0.45rem 0.7rem;
-  font-size: 1rem;
-  cursor: pointer;
-  color: var(--text);
-  font-family: var(--font);
-  transition: background 0.1s;
+.slip-pending-sym { font-weight: 800; font-size: 0.9rem; color: var(--muted); }
+.slip-pending-name { flex: 1; font-size: 0.75rem; color: var(--muted); font-style: italic; }
+.slip-add-btn {
+  background: var(--primary); color: var(--btn-text); border: none; border-radius: 7px;
+  padding: 0.35rem 0.7rem; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s, transform 0.1s; white-space: nowrap;
 }
-.qty-btn:hover { background: var(--primary); color: var(--btn-text); }
-.qty-val {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  min-width: 2.5rem;
-  text-align: center;
-  border: none;
+.slip-add-btn:hover { background: var(--primary-h); }
+.slip-add-btn:active { transform: scale(0.95); }
+.slip-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.slip-spin-btn {
+  background: none; border: none; color: var(--muted); font-size: 0.78rem;
+  cursor: pointer; font-family: var(--font); white-space: nowrap; padding: 0.2rem;
+}
+.slip-spin-btn:hover { color: var(--primary); text-decoration: underline; }
+.slip-why {
+  font-size: 0.72rem; color: var(--muted); line-height: 1.35;
+  padding: 0.4rem 0.9rem 0.5rem; border-top: 1px solid var(--accent);
+}
+.slip-footer {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 0.9rem; border-top: 2px solid var(--accent);
   background: var(--card);
-  color: var(--text);
-  font-family: var(--font);
 }
-.buy-btn {
-  flex: 1;
-  padding: 0.55rem 1rem;
-  background: var(--primary);
-  color: var(--btn-text);
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: var(--font);
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  white-space: nowrap;
+.slip-footer-total { flex: 1; font-size: 0.85rem; color: var(--muted); }
+.slip-footer-total strong { color: var(--text); font-weight: 700; font-size: 0.9rem; }
+.slip-buy-all {
+  background: var(--primary); color: var(--btn-text); border: none; border-radius: 8px;
+  padding: 0.55rem 1.2rem; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  font-family: var(--font); transition: background 0.15s, transform 0.1s;
 }
-.buy-btn:hover { background: var(--primary-h); }
-.buy-btn:active { transform: scale(0.97); }
-.buy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.spin-again-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  font-family: var(--font);
-  padding: 0.3rem;
-  white-space: nowrap;
+.slip-buy-all:hover { background: var(--primary-h); }
+.slip-buy-all:active { transform: scale(0.97); }
+.slip-buy-all:disabled { opacity: 0.35; cursor: not-allowed; }
+.slip-clear-btn {
+  background: none; border: none; color: var(--muted); font-size: 0.75rem;
+  cursor: pointer; font-family: var(--font); padding: 0.3rem;
 }
-.spin-again-btn:hover { color: var(--primary); text-decoration: underline; }
+.slip-clear-btn:hover { color: var(--loss); }
 
-/* ─── POSITIONS ─── */
-.positions-header {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.7rem;
+/* ─── POSITIONS GRID (bookies board style) ─── */
+.section-label {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted); margin-bottom: 0.5rem;
+  display: flex; align-items: baseline; gap: 0.5rem;
 }
-.positions-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-.positions-count {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
+.section-label span { font-weight: 400; }
 .empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 0.85rem; line-height: 1.5;
 }
+.pos-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;
+}
+.pos-tile {
+  background: var(--card); border-radius: 10px; padding: 0.7rem 0.8rem;
+  box-shadow: var(--shadow); cursor: pointer; position: relative;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pos-tile:hover { border-color: var(--accent); }
+.pos-tile.expanded { border-color: var(--primary); }
+.pos-tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.3rem; }
+.pos-tile-sym { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; }
+.pos-tile-chg { font-size: 0.72rem; font-weight: 700; text-align: right; }
+.pos-tile-spark { margin: 0.3rem 0; }
+.pos-tile-price { font-size: 0.8rem; font-weight: 600; }
+.pos-tile-pnl { font-size: 0.75rem; font-weight: 700; margin-top: 0.1rem; }
+.pos-tile-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.05rem; }
 
-.position-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 0.85rem 1rem;
-  box-shadow: var(--shadow);
-  margin-bottom: 0.6rem;
-  transition: box-shadow 0.15s;
+/* Expanded detail panel — full width, sits between rows */
+.pos-detail {
+  grid-column: 1 / -1;
+  background: var(--card); border-radius: 10px; padding: 0.8rem 1rem;
+  box-shadow: var(--shadow); animation: revealIn 0.15s ease;
+  border: 2px solid var(--primary);
 }
-.position-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
-.pos-main {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.5rem;
+.pos-detail-top { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
+.pos-detail-sym { font-size: 1rem; font-weight: 800; }
+.pos-detail-name { font-size: 0.78rem; color: var(--muted); flex: 1; }
+.pos-detail-stats {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; font-size: 0.75rem;
+  color: var(--muted); margin-bottom: 0.6rem;
 }
-.pos-sparkline { flex-shrink: 0; }
-.pos-left { flex: 1; min-width: 0; }
-.pos-symbol { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
-.pos-name {
-  font-size: 0.75rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 0.05rem;
-}
-.pos-right { text-align: right; flex-shrink: 0; }
-.pos-price { font-size: 0.95rem; font-weight: 600; }
-.pos-change { font-size: 0.75rem; margin-top: 0.05rem; }
-
-.pos-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1rem;
-  font-size: 0.75rem;
-  color: var(--muted);
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--accent);
-  margin-bottom: 0.5rem;
-}
-.stat-item strong { color: var(--text); font-weight: 600; }
-.stat-pnl-up { color: var(--gain); font-weight: 600; }
-.stat-pnl-dn { color: var(--loss); font-weight: 600; }
-
-.pos-actions { display: flex; gap: 0.4rem; }
+.pos-detail-stats strong { color: var(--text); }
+.pos-detail-acts { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .act-btn {
-  padding: 0.4rem 0.85rem;
-  border-radius: 7px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-family: var(--font);
-  cursor: pointer;
-  border: none;
-  transition: background 0.1s, transform 0.1s;
+  padding: 0.38rem 0.8rem; border-radius: 7px; font-size: 0.78rem; font-weight: 600;
+  font-family: var(--font); cursor: pointer; border: none; transition: background 0.1s, transform 0.1s;
 }
-.act-btn:active { transform: scale(0.96); }
+.act-btn:active { transform: scale(0.95); }
 .act-buy { background: var(--accent); color: var(--text); }
 .act-buy:hover { background: var(--primary); color: var(--btn-text); }
 .act-sell { background: var(--gentle); color: var(--text); }
 .act-sell:hover { background: var(--loss); color: #fff; }
-
-/* inline buy-more row */
-.inline-buy {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--accent);
-  margin-top: 0.4rem;
-  animation: revealIn 0.15s ease;
+.pos-detail-links { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--accent); }
+.ext-link-sm {
+  font-size: 0.68rem; color: var(--muted); text-decoration: none;
+  padding: 0.2rem 0.5rem; border: 1px solid var(--accent); border-radius: 5px;
+  transition: color 0.1s, border-color 0.1s;
 }
+.ext-link-sm:hover { color: var(--primary); border-color: var(--primary); }
 
 /* ─── HISTORY ─── */
 .history-toggle {
@@ -761,13 +649,12 @@ let priceCache = {};
 let dataMode = 'sim'; // internal only — never shown to user
 
 let S = {
-  luckyResult: null,
-  luckyLoading: false,
-  luckySource: null,
+  slip: [],            // [{ symbol, name, sector, why, qty }] — pending buys
+  slipLoading: false,  // spinning indicator for web/AI fetch
+  slipLoadSource: null,
   proMode: false,
   aiPrompt: '',
-  buyQty: 1,
-  buyingSymbol: null,
+  expandedSymbol: null, // which position tile is open
   historyOpen: false,
   realWorldOpen: false,
   setupBalance: 10000,
@@ -881,7 +768,7 @@ function render() {
   if (!profile || !portfolio) { renderSetup(a); return; }
   renderHeader(a);
   renderLucky(a);
-  renderReveal(a);
+  renderSlip(a);
   renderPositions(a);
   renderMakeItReal(a);
   renderHistory(a);
@@ -1060,45 +947,55 @@ function executeSell(symbol, qty, price) {
   return true;
 }
 
-// ─── LUCKY LOGIC ───
-function luckyPreset() {
-  const pick = POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
-  S.luckyResult = pick;
-  S.luckySource = 'preset';
-  S.buyQty = 1;
+// ─── SLIP LOGIC ───
+function slipHas(symbol) { return S.slip.some(s => s.symbol === symbol); }
+
+function addToSlip(pick) {
+  if (!pick || !pick.symbol) return;
+  if (slipHas(pick.symbol)) return; // already on slip
+  S.slip = [...S.slip, { ...pick, qty: 1 }];
+  // Kick off a price fetch if we don't have a price yet
+  if (!getPrice(pick.symbol)) fetchPrice(pick.symbol).then(() => render()).catch(() => {});
   render();
 }
 
+function luckyPreset() {
+  // Pick something not already on the slip or in portfolio
+  const avoid = new Set([...S.slip.map(s => s.symbol), ...(portfolio ? portfolio.holdings.map(h => h.symbol) : [])]);
+  const pool = POPULAR_COMPANIES.filter(c => !avoid.has(c.symbol));
+  const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
+  addToSlip(pick);
+}
+
 async function luckyWeb() {
-  S.luckyLoading = true;
-  S.luckySource = 'web';
+  S.slipLoading = true;
+  S.slipLoadSource = 'web';
   render();
   try {
     const proxy = 'https://corsproxy.io/?' + encodeURIComponent('https://query1.finance.yahoo.com/v1/finance/trending/US?count=20');
     const resp = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
     const data = await resp.json();
     const symbols = data.finance.result[0].quotes.map(q => q.symbol);
-    const known = symbols.map(s => POPULAR_COMPANIES.find(c => c.symbol === s)).filter(Boolean);
-    S.luckyResult = known.length > 0
+    const known = symbols.map(s => POPULAR_COMPANIES.find(c => c.symbol === s)).filter(Boolean).filter(c => !slipHas(c.symbol));
+    const pick = known.length > 0
       ? known[Math.floor(Math.random() * known.length)]
-      : { symbol: symbols[Math.floor(Math.random() * symbols.length)], name: symbols[0], sector:'Trending', why:'Trending on Yahoo Finance right now. Do your own research before diving in.' };
+      : { symbol: symbols[0], name: symbols[0], sector:'Trending', why:'Trending on Yahoo Finance right now.' };
+    addToSlip(pick);
   } catch(e) {
-    S.luckyResult = POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
+    luckyPreset();
   }
-  S.luckyLoading = false;
-  S.buyQty = 1;
+  S.slipLoading = false;
   render();
 }
 
 async function luckyAI() {
   const apiKey = profile && profile.claudeApiKey;
   if (!apiKey) {
-    S.luckyResult = { symbol:'⚙', name:'API Key Needed', sector:'Settings', why:'Paste your Claude API key below in Settings to enable AI picks. Claude will suggest a stock with live reasoning.' };
-    S.luckySource = 'ai';
-    render(); return;
+    addToSlip({ symbol:'⚙', name:'API Key Needed', sector:'Settings', why:'Add your Claude API key in Settings to unlock AI picks.' });
+    return;
   }
-  S.luckyLoading = true;
-  S.luckySource = 'ai';
+  S.slipLoading = true;
+  S.slipLoadSource = 'ai';
   render();
   try {
     const prompt = S.aiPrompt || 'Pick one stock for a beginner paper trading portfolio. Return JSON only: {"symbol":"AAPL","name":"Apple Inc","sector":"Tech","why":"2-3 sentence reason"}';
@@ -1113,16 +1010,33 @@ async function luckyAI() {
     const m = text.match(/\{[\s\S]*?"symbol"[\s\S]*?\}/);
     if (m) {
       const p = JSON.parse(m[0]);
-      S.luckyResult = { symbol: p.symbol, name: p.name || p.symbol, sector: p.sector || 'AI Pick', why: p.why || p.reason || text };
+      addToSlip({ symbol: p.symbol, name: p.name || p.symbol, sector: p.sector || 'AI Pick', why: p.why || text });
     } else {
-      S.luckyResult = { symbol:'AI', name:'AI Suggestion', sector:'AI Pick', why: text };
+      addToSlip({ symbol:'AI', name:'AI Suggestion', sector:'AI Pick', why: text });
     }
   } catch(e) {
-    S.luckyResult = { symbol:'!', name:'Error', sector:'Error', why:'Could not reach Claude API. Check your key in Settings.' };
+    addToSlip({ symbol:'!', name:'Error', sector:'Error', why:'Could not reach Claude API.' });
   }
-  S.luckyLoading = false;
-  S.buyQty = 1;
+  S.slipLoading = false;
   render();
+}
+
+function buyAllSlip() {
+  let bought = 0;
+  for (const item of S.slip) {
+    const price = getPrice(item.symbol);
+    if (!price) continue;
+    if (portfolio.cash >= price * item.qty) {
+      executeBuy(item.symbol, item.name, item.qty, price);
+      bought++;
+    }
+  }
+  if (bought > 0) {
+    S.slip = [];
+    // Kick off price fetches in background
+    for (const h of portfolio.holdings) fetchPrice(h.symbol).catch(() => {});
+    render();
+  }
 }
 
 // ─── RENDER: SETUP ───
@@ -1207,10 +1121,9 @@ function renderHeader(a) {
   a.appendChild(hdr);
 }
 
-// ─── RENDER: LUCKY ───
+// ─── RENDER: LUCKY BUTTONS ───
 function renderLucky(a) {
   const sec = el('div', { className:'lucky-section' });
-
   const btns = el('div', { className:'lucky-buttons' });
 
   const makeBtn = (icon, label, sub, handler, extraClass) => {
@@ -1220,260 +1133,229 @@ function renderLucky(a) {
     b.appendChild(el('span', { className:'lucky-sub' }, sub));
     return b;
   };
-
   btns.appendChild(makeBtn('🎲', "I'm Feeling Lucky", 'Random from 50 picks', luckyPreset));
   btns.appendChild(makeBtn('🌐', "I'm Feeling Lucky", 'Trending right now', luckyWeb));
   if (S.proMode) btns.appendChild(makeBtn('🧠', 'AI Pick', 'Claude suggests', luckyAI, 'ai-btn'));
-
   sec.appendChild(btns);
 
-  // Pro toggle row
   const proRow = el('div', { className:'pro-row' });
   proRow.appendChild(el('span', { className: !S.proMode ? 'active-label' : '' }, 'Free'));
-  const sw = el('button', {
+  proRow.appendChild(el('button', {
     className:'pro-switch' + (S.proMode ? ' on' : ''),
     'aria-label':'Toggle Pro AI mode',
     onClick() { S.proMode = !S.proMode; saveAll(); render(); },
-  });
-  proRow.appendChild(sw);
+  }));
   proRow.appendChild(el('span', { className: S.proMode ? 'active-label' : '' }, 'Pro (AI)'));
   sec.appendChild(proRow);
 
-  // AI prompt input when Pro is on
   if (S.proMode) {
-    const promptRow = el('div', { className:'ai-prompt-row' });
-    const inp = el('input', {
-      className:'ai-input',
-      type:'text',
-      placeholder:'Ask anything: "Best UK dividend stock under £5"…',
-    });
+    const pr = el('div', { className:'ai-prompt-row' });
+    const inp = el('input', { className:'ai-input', type:'text', placeholder:'Ask: "Best UK dividend under £5"…' });
     inp.value = S.aiPrompt || '';
     inp.addEventListener('input', () => { S.aiPrompt = inp.value; });
-    promptRow.appendChild(inp);
-    sec.appendChild(promptRow);
+    pr.appendChild(inp);
+    sec.appendChild(pr);
   }
-
   a.appendChild(sec);
 }
 
-// ─── RENDER: REVEAL CARD ───
-function renderReveal(a) {
-  if (!S.luckyResult && !S.luckyLoading) return;
+// ─── RENDER: SLIP ───
+function renderSlip(a) {
+  if (S.slip.length === 0 && !S.slipLoading) return;
 
-  const card = el('div', { className:'reveal-card' });
+  const card = el('div', { className:'slip-card' });
 
-  if (S.luckyLoading) {
-    card.appendChild(el('div', { className:'reveal-loading' }, S.luckySource === 'ai' ? '🧠 Claude is thinking…' : '🌐 Fetching what\'s trending…'));
-    a.appendChild(card);
-    return;
+  // Header
+  const hdr = el('div', { className:'slip-header' });
+  hdr.appendChild(el('div', { className:'slip-title' }, 'Your picks'));
+  const slipTotal = S.slip.reduce((sum, item) => {
+    const p = getPrice(item.symbol); return sum + (p ? p * item.qty : 0);
+  }, 0);
+  hdr.appendChild(el('div', { className:'slip-total' }, slipTotal > 0 ? fmtShort(slipTotal) : ''));
+  card.appendChild(hdr);
+
+  // Loading row
+  if (S.slipLoading) {
+    card.appendChild(el('div', { className:'slip-loading' },
+      S.slipLoadSource === 'ai' ? '🧠 Claude is thinking…' : '🌐 Fetching what\'s trending…'
+    ));
   }
 
-  const r = S.luckyResult;
-  const price = getPrice(r.symbol);
-  const canBuy = price && portfolio.cash >= price * (S.buyQty || 1);
-  const total = price ? price * (S.buyQty || 1) : null;
+  // Slip rows
+  for (const item of S.slip) {
+    const price = getPrice(item.symbol);
+    const row = el('div', { className:'slip-row' });
+    row.appendChild(el('div', { className:'slip-sym' }, item.symbol));
+    row.appendChild(el('div', { className:'slip-name' }, item.name));
+    if (price) {
+      const ch = getPriceChange(item.symbol);
+      const chEl = el('div', { className:'slip-price' });
+      chEl.appendChild(document.createTextNode(fmtShort(price)));
+      if (ch) chEl.appendChild(el('span', { className: ch.pct >= 0 ? 'pnl-up' : 'pnl-dn', style:'font-size:0.65rem;margin-left:0.25rem' }, fmtPct(ch.pct)));
+      row.appendChild(chEl);
+    }
 
-  // Top: ticker + sector badge
-  const top = el('div', { className:'reveal-top' });
-  const company = el('div', { className:'reveal-company' });
-  company.appendChild(el('div', { className:'reveal-ticker' }, r.symbol));
-  company.appendChild(el('div', { className:'reveal-name' }, r.name));
-  top.appendChild(company);
-  top.appendChild(el('span', { className:'reveal-sector-badge' }, r.sector));
-  card.appendChild(top);
-
-  // Price
-  if (price) {
-    const ch = getPriceChange(r.symbol);
-    const chClass = ch && ch.pct >= 0 ? 'pnl-up' : 'pnl-dn';
-    const chStr = ch ? ' · ' + fmtPct(ch.pct) : '';
-    const priceRow = el('div', { className:'reveal-price-row' });
-    priceRow.appendChild(el('strong', null, fmt(price)));
-    if (ch) priceRow.appendChild(el('span', { className: chClass }, chStr));
-    card.appendChild(priceRow);
-  }
-
-  // Conviction reason
-  if (r.why) card.appendChild(el('div', { className:'reveal-why' }, r.why));
-
-  // Buy actions
-  const actions = el('div', { className:'reveal-actions' });
-
-  if (price) {
     // Qty stepper
-    const stepper = el('div', { className:'qty-stepper' });
-    stepper.appendChild(el('button', { className:'qty-btn', onClick() {
-      if (S.buyQty > 1) { S.buyQty--; render(); }
-    }}, '−'));
-    stepper.appendChild(el('input', {
-      className:'qty-val',
-      type:'number',
-      min:'1',
-      value: String(S.buyQty || 1),
-      onChange(e) { const v = parseInt(e.target.value); if (v > 0) { S.buyQty = v; render(); } },
-    }));
-    stepper.appendChild(el('button', { className:'qty-btn', onClick() { S.buyQty = (S.buyQty || 1) + 1; render(); }},'＋'));
-    actions.appendChild(stepper);
+    const ctrl = el('div', { className:'slip-qty-ctrl' });
+    ctrl.appendChild(el('button', { className:'slip-qty-btn', onClick(e) { e.stopPropagation(); if (item.qty > 1) { item.qty--; render(); }}}, '−'));
+    ctrl.appendChild(el('span', { className:'slip-qty-val' }, String(item.qty)));
+    ctrl.appendChild(el('button', { className:'slip-qty-btn', onClick(e) { e.stopPropagation(); item.qty++; render(); }}, '+'));
+    row.appendChild(ctrl);
 
-    const label = total ? 'Buy · ' + fmtShort(total) : 'Buy';
-    actions.appendChild(el('button', {
-      className:'buy-btn',
-      disabled: !canBuy || null,
-      onClick() {
-        const ok = executeBuy(r.symbol, r.name, S.buyQty || 1, price);
-        if (ok) {
-          S.luckyResult = null;
-          S.buyQty = 1;
-          // Fetch live price in background after buying
-          fetchPrice(r.symbol).then(render);
-          render();
-        }
-      },
-    }, canBuy ? label : (portfolio.cash < price ? 'Not enough cash' : label)));
+    if (price) row.appendChild(el('div', { className:'slip-cost' }, fmtShort(price * item.qty)));
+    row.appendChild(el('button', { className:'slip-remove', title:'Remove', onClick(e) { e.stopPropagation(); S.slip = S.slip.filter(s => s.symbol !== item.symbol); render(); }}, '×'));
+    card.appendChild(row);
+
+    if (item.why) {
+      const why = el('div', { className:'slip-why' }, item.why);
+      card.appendChild(why);
+    }
   }
 
-  actions.appendChild(el('button', { className:'spin-again-btn', onClick: luckyPreset }, '↻ Spin again'));
-  card.appendChild(actions);
+  // Add more / spin
+  const addRow = el('div', { className:'slip-pending' });
+  addRow.appendChild(el('div', { className:'slip-pending-name' }, S.slip.length === 0 ? 'Spinning…' : 'Keep adding, or buy your picks'));
+  addRow.appendChild(el('button', { className:'slip-spin-btn', onClick: luckyPreset }, '🎲 Add another'));
+  card.appendChild(addRow);
+
+  // Footer: total + buy all
+  if (S.slip.length > 0) {
+    const canAfford = S.slip.some(item => { const p = getPrice(item.symbol); return p && portfolio.cash >= p * item.qty; });
+    const footer = el('div', { className:'slip-footer' });
+    footer.appendChild(el('div', { className:'slip-footer-total' }, 'Total: ', el('strong', null, fmtShort(slipTotal))));
+    footer.appendChild(el('button', { className:'slip-clear-btn', onClick() { S.slip = []; render(); }}, 'Clear'));
+    footer.appendChild(el('button', {
+      className:'slip-buy-all',
+      disabled: (!canAfford) || null,
+      onClick: buyAllSlip,
+    }, canAfford ? 'Buy all →' : 'Not enough cash'));
+    card.appendChild(footer);
+  }
 
   a.appendChild(card);
 }
 
-// ─── RENDER: POSITIONS ───
+// ─── RENDER: POSITIONS GRID ───
 function renderPositions(a) {
-  const h = portfolio.holdings;
+  const holdings = portfolio.holdings;
 
-  const hdr = el('div', { className:'positions-header' });
-  hdr.appendChild(el('span', { className:'positions-title' }, 'Your positions'));
-  if (h.length > 0) hdr.appendChild(el('span', { className:'positions-count' }, '(' + h.length + ')'));
-  a.appendChild(hdr);
+  const lbl = el('div', { className:'section-label' });
+  lbl.appendChild(document.createTextNode('Portfolio'));
+  if (holdings.length > 0) lbl.appendChild(el('span', null, holdings.length + ' positions'));
+  a.appendChild(lbl);
 
-  if (h.length === 0) {
-    a.appendChild(el('div', { className:'empty-state' },
-      'Nothing here yet.\nHit the lucky button to find something you believe in.'
-    ));
+  if (holdings.length === 0) {
+    a.appendChild(el('div', { className:'empty-state' }, 'Nothing yet. Hit a lucky button and add picks to your slip.'));
     return;
   }
 
-  for (const holding of h) {
+  const grid = el('div', { className:'pos-grid' });
+
+  holdings.forEach((holding, idx) => {
     const price = getPrice(holding.symbol);
     const prices = getPriceHistory(holding.symbol);
     const ch = getPriceChange(holding.symbol);
     const qty = holdingQty(holding);
-    const cost = holdingCost(holding);
-    const val = holdingValue(holding);
     const pnl = holdingPnL(holding);
     const pnlPct = holdingPnLPct(holding);
-    const dur = holdingDuration(holding);
     const pnlUp = pnl >= 0;
-    const chUp = ch ? ch.pct >= 0 : true;
+    const isExpanded = S.expandedSymbol === holding.symbol;
 
-    const card = el('div', { className:'position-card' });
+    // Tile
+    const tile = el('div', {
+      className:'pos-tile' + (isExpanded ? ' expanded' : ''),
+      onClick() { S.expandedSymbol = isExpanded ? null : holding.symbol; render(); },
+    });
 
-    // Main row: sparkline + symbol/name + price/change
-    const main = el('div', { className:'pos-main' });
-    if (prices) main.appendChild(el('div', { className:'pos-sparkline' }, sparklineSVG(prices, 56, 28)));
+    const top = el('div', { className:'pos-tile-top' });
+    top.appendChild(el('div', { className:'pos-tile-sym' }, holding.symbol));
+    if (ch) top.appendChild(el('div', { className:'pos-tile-chg ' + (ch.pct >= 0 ? 'pnl-up' : 'pnl-dn') }, fmtPct(ch.pct)));
+    tile.appendChild(top);
 
-    const left = el('div', { className:'pos-left' });
-    left.appendChild(el('div', { className:'pos-symbol' }, holding.symbol));
-    left.appendChild(el('div', { className:'pos-name' }, holding.name));
-    main.appendChild(left);
+    if (prices) tile.appendChild(el('div', { className:'pos-tile-spark' }, sparklineSVG(prices, 80, 26)));
 
-    const right = el('div', { className:'pos-right' });
-    right.appendChild(el('div', { className:'pos-price' }, price ? fmt(price) : '—'));
-    if (ch) right.appendChild(el('div', { className:'pos-change ' + (chUp ? 'pnl-up' : 'pnl-dn') }, fmtPct(ch.pct)));
-    main.appendChild(right);
-    card.appendChild(main);
+    tile.appendChild(el('div', { className:'pos-tile-price' }, price ? fmtShort(price) : '—'));
+    tile.appendChild(el('div', {
+      className:'pos-tile-pnl ' + (pnlUp ? 'pnl-up' : 'pnl-dn'),
+    }, (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl)));
+    tile.appendChild(el('div', { className:'pos-tile-sub' }, qty + ' share' + (qty !== 1 ? 's' : '') + ' · ' + fmtPct(pnlPct)));
 
-    // Purchase date
-    const oldestMs = holding.lots.reduce((min, l) => Math.min(min, new Date(l.boughtAt).getTime()), Infinity);
-    const buyDate = new Date(oldestMs).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    grid.appendChild(tile);
 
-    // Stats row
-    const stats = el('div', { className:'pos-stats' });
-    stats.appendChild(el('span', { className:'stat-item' }, el('strong', null, qty + ' share' + (qty !== 1 ? 's' : ''))));
-    stats.appendChild(el('span', { className:'stat-item' }, 'bought ', el('strong', null, buyDate)));
-    stats.appendChild(el('span', { className:'stat-item' }, 'held ', el('strong', null, dur)));
-    stats.appendChild(el('span', null, ''));  // line break feel
-    stats.appendChild(el('span', { className:'stat-item' }, 'cost ', el('strong', null, fmtShort(cost))));
-    stats.appendChild(el('span', { className:'stat-item' }, 'value ', el('strong', null, fmtShort(val))));
-    stats.appendChild(el('span', { className:'stat-item ' + (pnlUp ? 'stat-pnl-up' : 'stat-pnl-dn') },
-      (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ')'
-    ));
-    card.appendChild(stats);
-
-    // Actions row
-    const acts = el('div', { className:'pos-actions' });
-
-    // Buy more — toggles inline buy panel
-    acts.appendChild(el('button', {
-      className:'act-btn act-buy',
-      onClick() {
-        S.buyingSymbol = S.buyingSymbol === holding.symbol ? null : holding.symbol;
-        S.buyQty = 1;
-        render();
-      },
-    }, '+ Buy more'));
-
-    // Sell all
-    acts.appendChild(el('button', {
-      className:'act-btn act-sell',
-      onClick() {
-        if (price) {
-          executeSell(holding.symbol, qty, price);
-          render();
-        }
-      },
-    }, 'Sell all'));
-
-    card.appendChild(acts);
-
-    // Inline buy-more panel
-    if (S.buyingSymbol === holding.symbol && price) {
-      const ibuy = el('div', { className:'inline-buy' });
-      const stepper = el('div', { className:'qty-stepper' });
-      stepper.appendChild(el('button', { className:'qty-btn', onClick() { if (S.buyQty > 1) { S.buyQty--; render(); }}}, '−'));
-      stepper.appendChild(el('input', { className:'qty-val', type:'number', min:'1', value: String(S.buyQty), onChange(e) { const v = parseInt(e.target.value); if (v > 0) { S.buyQty = v; render(); }}}));
-      stepper.appendChild(el('button', { className:'qty-btn', onClick() { S.buyQty++; render(); }}, '＋'));
-      ibuy.appendChild(stepper);
-
-      const total = price * S.buyQty;
-      const canBuy = portfolio.cash >= total;
-      ibuy.appendChild(el('button', {
-        className:'buy-btn',
-        disabled: !canBuy || null,
-        onClick() {
-          if (executeBuy(holding.symbol, holding.name, S.buyQty, price)) {
-            S.buyingSymbol = null;
-            S.buyQty = 1;
-            render();
-          }
-        },
-      }, canBuy ? 'Buy · ' + fmtShort(total) : 'Not enough cash'));
-
-      ibuy.appendChild(el('button', { className:'spin-again-btn', onClick() { S.buyingSymbol = null; render(); }}, 'Cancel'));
-      card.appendChild(ibuy);
+    // Detail panel — insert after every 2 tiles, or after last tile
+    if (isExpanded) {
+      // We'll render detail after grid, keyed on position
+      tile.dataset.showDetail = '1';
     }
+  });
 
-    // External links
-    const sym = holding.symbol;
-    const isUK = sym.endsWith('.L');
-    const isETF = (POPULAR_COMPANIES.find(c => c.symbol === sym) || {}).sector === 'ETF';
-    const cleanSym = sym.replace('.L', '').toLowerCase();
-    const yfUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym);
-    const saUrl = isETF
-      ? 'https://stockanalysis.com/etf/' + cleanSym + '/'
-      : 'https://stockanalysis.com/stocks/' + cleanSym + '/';
-    const newsUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/news/';
-    const analysisUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/analysis/';
+  a.appendChild(grid);
 
-    const links = el('div', { className:'pos-links' });
-    links.appendChild(el('a', { className:'ext-link', href: yfUrl, target:'_blank', rel:'noopener' }, '📈 Live price'));
-    links.appendChild(el('a', { className:'ext-link', href: analysisUrl, target:'_blank', rel:'noopener' }, '🎯 Analyst ratings'));
-    links.appendChild(el('a', { className:'ext-link', href: saUrl, target:'_blank', rel:'noopener' }, '🔍 Fundamentals'));
-    links.appendChild(el('a', { className:'ext-link', href: newsUrl, target:'_blank', rel:'noopener' }, '📰 News'));
-    card.appendChild(links);
+  // Expanded detail — render separately below grid
+  if (S.expandedSymbol) {
+    const holding = holdings.find(h => h.symbol === S.expandedSymbol);
+    if (holding) {
+      const price = getPrice(holding.symbol);
+      const qty = holdingQty(holding);
+      const cost = holdingCost(holding);
+      const val = holdingValue(holding);
+      const pnl = holdingPnL(holding);
+      const pnlPct = holdingPnLPct(holding);
+      const dur = holdingDuration(holding);
+      const oldestMs = holding.lots.reduce((min, l) => Math.min(min, new Date(l.boughtAt).getTime()), Infinity);
+      const buyDate = new Date(oldestMs).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+      const pnlUp = pnl >= 0;
 
-    a.appendChild(card);
+      const detail = el('div', { className:'pos-detail' });
+
+      const top = el('div', { className:'pos-detail-top' });
+      top.appendChild(el('span', { className:'pos-detail-sym' }, holding.symbol));
+      top.appendChild(el('span', { className:'pos-detail-name' }, holding.name));
+      top.appendChild(el('button', { className:'slip-clear-btn', onClick() { S.expandedSymbol = null; render(); }}, '✕'));
+      detail.appendChild(top);
+
+      const stats = el('div', { className:'pos-detail-stats' });
+      stats.appendChild(el('span', null, el('strong', null, qty + ' share' + (qty !== 1 ? 's' : ''))));
+      stats.appendChild(el('span', null, 'bought ', el('strong', null, buyDate)));
+      stats.appendChild(el('span', null, 'held ', el('strong', null, dur)));
+      stats.appendChild(el('span', null, 'cost ', el('strong', null, fmtShort(cost))));
+      stats.appendChild(el('span', null, 'value ', el('strong', null, fmtShort(val))));
+      stats.appendChild(el('span', { className: pnlUp ? 'pnl-up' : 'pnl-dn', style:'font-weight:700' },
+        (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ')'
+      ));
+      detail.appendChild(stats);
+
+      const acts = el('div', { className:'pos-detail-acts' });
+      // Add more to slip
+      if (!slipHas(holding.symbol)) {
+        acts.appendChild(el('button', { className:'act-btn act-buy', onClick() {
+          addToSlip({ symbol: holding.symbol, name: holding.name, sector: '', why: holding.conviction || '' });
+          S.expandedSymbol = null; render();
+        }}, '+ Add to slip'));
+      }
+      // Quick sell
+      if (price) {
+        acts.appendChild(el('button', { className:'act-btn act-sell', onClick() {
+          if (confirm('Sell all ' + qty + ' shares of ' + holding.symbol + '?')) {
+            executeSell(holding.symbol, qty, price); S.expandedSymbol = null; render();
+          }
+        }}, 'Sell all'));
+      }
+      detail.appendChild(acts);
+
+      // External links
+      const sym = holding.symbol;
+      const isETF = (POPULAR_COMPANIES.find(c => c.symbol === sym) || {}).sector === 'ETF';
+      const cleanSym = sym.replace('.L','').toLowerCase();
+      const lnks = el('div', { className:'pos-detail-links' });
+      lnks.appendChild(el('a', { className:'ext-link-sm', href:'https://finance.yahoo.com/quote/' + encodeURIComponent(sym), target:'_blank', rel:'noopener' }, '📈 Live price'));
+      lnks.appendChild(el('a', { className:'ext-link-sm', href:'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/analysis/', target:'_blank', rel:'noopener' }, '🎯 Analysts'));
+      lnks.appendChild(el('a', { className:'ext-link-sm', href: isETF ? 'https://stockanalysis.com/etf/' + cleanSym + '/' : 'https://stockanalysis.com/stocks/' + cleanSym + '/', target:'_blank', rel:'noopener' }, '🔍 Fundamentals'));
+      lnks.appendChild(el('a', { className:'ext-link-sm', href:'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/news/', target:'_blank', rel:'noopener' }, '📰 News'));
+      detail.appendChild(lnks);
+
+      a.appendChild(detail);
+    }
   }
 }
 
