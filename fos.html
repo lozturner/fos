@@ -569,6 +569,51 @@ body {
 .ghost-btn:hover { border-color: var(--primary); color: var(--primary); }
 .ghost-btn.danger:hover { border-color: var(--loss); color: var(--loss); }
 
+/* ─── LIVE PULSE ─── */
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gain);
+  animation: livepulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes livepulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* ─── EXTERNAL LINKS ─── */
+.pos-links {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--accent);
+  margin-top: 0.3rem;
+}
+.ext-link {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.ext-link:hover { color: var(--primary); border-color: var(--primary); }
+
 /* ─── BUTTON ─── */
 .btn-primary {
   display: block;
@@ -1009,14 +1054,16 @@ function renderHeader(a) {
 
   const vb = el('div', { className:'header-value-block' });
   vb.appendChild(el('div', { className:'header-total' }, fmtShort(total)));
-  vb.appendChild(el('div', { className:'header-pnl ' + pnlClass }, fmtPct(pct) + ' · ' + (pnl >= 0 ? '+' : '') + fmtShort(pnl)));
+  const pnlSign = pnl >= 0 ? '+' : '';
+  vb.appendChild(el('div', { className:'header-pnl ' + pnlClass },
+    pnlSign + fmtShort(pnl) + ' (' + fmtPct(pct) + ') all time'
+  ));
   row.appendChild(vb);
 
   const right = el('div', { className:'header-right' });
-  right.appendChild(el('span', { className:'data-badge ' + (dataMode === 'live' ? 'badge-live' : 'badge-demo') }, dataMode === 'live' ? 'Live' : 'Demo'));
   const refreshBtn = el('button', {
     className:'refresh-btn' + (S.refreshing ? ' spinning' : ''),
-    title:'Refresh prices',
+    title:'Force refresh live prices',
     onClick: refreshAll,
   }, '↻');
   right.appendChild(refreshBtn);
@@ -1027,6 +1074,16 @@ function renderHeader(a) {
   cash.appendChild(el('span', null, 'Cash: ', el('strong', null, fmtShort(portfolio.cash))));
   cash.appendChild(el('span', null, 'Invested: ', el('strong', null, fmtShort(invested))));
   hdr.appendChild(cash);
+
+  // Live indicator
+  const live = el('div', { className:'live-indicator' });
+  live.appendChild(el('span', { className:'live-dot' }));
+  const age = lastTickAt ? Math.round((Date.now() - lastTickAt) / 1000) : null;
+  const ageStr = age === null ? 'Starting…' : age < 5 ? 'Just now' : age + 's ago';
+  live.appendChild(document.createTextNode(
+    dataMode === 'live' ? 'Live prices · updated ' + ageStr : 'Simulating live · ' + ageStr
+  ));
+  hdr.appendChild(live);
 
   a.appendChild(hdr);
 }
@@ -1208,15 +1265,21 @@ function renderPositions(a) {
     main.appendChild(right);
     card.appendChild(main);
 
+    // Purchase date
+    const oldestMs = holding.lots.reduce((min, l) => Math.min(min, new Date(l.boughtAt).getTime()), Infinity);
+    const buyDate = new Date(oldestMs).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+
     // Stats row
     const stats = el('div', { className:'pos-stats' });
     stats.appendChild(el('span', { className:'stat-item' }, el('strong', null, qty + ' share' + (qty !== 1 ? 's' : ''))));
+    stats.appendChild(el('span', { className:'stat-item' }, 'bought ', el('strong', null, buyDate)));
+    stats.appendChild(el('span', { className:'stat-item' }, 'held ', el('strong', null, dur)));
+    stats.appendChild(el('span', null, ''));  // line break feel
     stats.appendChild(el('span', { className:'stat-item' }, 'cost ', el('strong', null, fmtShort(cost))));
     stats.appendChild(el('span', { className:'stat-item' }, 'value ', el('strong', null, fmtShort(val))));
     stats.appendChild(el('span', { className:'stat-item ' + (pnlUp ? 'stat-pnl-up' : 'stat-pnl-dn') },
-      (pnlUp ? '+' : '') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ')'
+      (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ')'
     ));
-    stats.appendChild(el('span', { className:'stat-item' }, 'held ', el('strong', null, dur)));
     card.appendChild(stats);
 
     // Actions row
@@ -1271,6 +1334,25 @@ function renderPositions(a) {
       ibuy.appendChild(el('button', { className:'spin-again-btn', onClick() { S.buyingSymbol = null; render(); }}, 'Cancel'));
       card.appendChild(ibuy);
     }
+
+    // External links
+    const sym = holding.symbol;
+    const isUK = sym.endsWith('.L');
+    const isETF = (POPULAR_COMPANIES.find(c => c.symbol === sym) || {}).sector === 'ETF';
+    const cleanSym = sym.replace('.L', '').toLowerCase();
+    const yfUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym);
+    const saUrl = isETF
+      ? 'https://stockanalysis.com/etf/' + cleanSym + '/'
+      : 'https://stockanalysis.com/stocks/' + cleanSym + '/';
+    const newsUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/news/';
+    const analysisUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(sym) + '/analysis/';
+
+    const links = el('div', { className:'pos-links' });
+    links.appendChild(el('a', { className:'ext-link', href: yfUrl, target:'_blank', rel:'noopener' }, '📈 Live price'));
+    links.appendChild(el('a', { className:'ext-link', href: analysisUrl, target:'_blank', rel:'noopener' }, '🎯 Analyst ratings'));
+    links.appendChild(el('a', { className:'ext-link', href: saUrl, target:'_blank', rel:'noopener' }, '🔍 Fundamentals'));
+    links.appendChild(el('a', { className:'ext-link', href: newsUrl, target:'_blank', rel:'noopener' }, '📰 News'));
+    card.appendChild(links);
 
     a.appendChild(card);
   }
@@ -1328,9 +1410,59 @@ function renderSettings(a) {
   a.appendChild(row);
 }
 
+// ─── LIVE SIMULATION + AUTO-REFRESH ───
+let lastTickAt = null;
+let tickInterval = null;
+
+function simulatePriceTick() {
+  // Small random walk on all demo symbols — makes sparklines and prices feel alive
+  for (const [sym, demo] of Object.entries(DEMO_DATA)) {
+    const base = demo.prices[demo.prices.length - 1];
+    const prev = demo.prices[demo.prices.length - 2];
+    const entry = priceCache[sym] || { price: base, prices: [...demo.prices] };
+
+    // ±0.2% jitter per tick, mean-revert toward base so it doesn't drift forever
+    const drift = (base - entry.price) * 0.05; // gentle pull back to base
+    const noise = entry.price * (Math.random() * 0.004 - 0.002);
+    const newPrice = Math.max(entry.price + drift + noise, base * 0.8); // floor at -20%
+
+    const dayChange = newPrice - prev;
+    const newPrices = [...(entry.prices || demo.prices).slice(-29), newPrice];
+
+    priceCache[sym] = {
+      price: newPrice,
+      change: dayChange,
+      changePct: (dayChange / prev) * 100,
+      prices: newPrices,
+      fetchedAt: Date.now(),
+    };
+  }
+  lastTickAt = Date.now();
+  if (portfolio && (portfolio.holdings.length > 0 || S.luckyResult)) render();
+}
+
+function startAutoRefresh() {
+  if (tickInterval) clearInterval(tickInterval);
+  if (dataMode === 'live') {
+    // Live: fetch from API every 45s (polite to Yahoo)
+    tickInterval = setInterval(async () => {
+      if (portfolio && portfolio.holdings.length > 0) {
+        await refreshAll();
+        lastTickAt = Date.now();
+      }
+    }, 45000);
+  } else {
+    // Demo: simulate price movement every 5s
+    tickInterval = setInterval(simulatePriceTick, 5000);
+    // First tick immediately
+    setTimeout(simulatePriceTick, 500);
+  }
+}
+
 // ─── INIT ───
 loadState();
 render();
+startAutoRefresh();
 </script>
 </body>
 </html>
