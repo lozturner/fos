@@ -172,16 +172,68 @@ body {
 .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.data-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.15rem 0.5rem;
-  border-radius: 20px;
+/* ─── MAKE IT REAL ─── */
+.real-trigger {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-h) 100%);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin: 0.8rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: none;
+  font-family: var(--font);
+  width: 100%;
+  text-align: left;
+  gap: 0.8rem;
+  transition: opacity 0.15s, transform 0.1s;
 }
-.badge-live { background: var(--gain); color: #fff; }
-.badge-demo { background: var(--warm); color: #2e2e2e; }
+.real-trigger:hover { opacity: 0.9; }
+.real-trigger:active { transform: scale(0.99); }
+.real-trigger-text { color: #fff; flex: 1; }
+.real-trigger-heading { font-size: 0.9rem; font-weight: 700; }
+.real-trigger-sub { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; }
+.real-trigger-arrow { color: #fff; font-size: 1.1rem; opacity: 0.7; transition: transform 0.2s; }
+.real-trigger-arrow.open { transform: rotate(90deg); }
+
+.real-panel { margin-bottom: 1rem; animation: revealIn 0.2s ease; }
+.real-section-title {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted); margin: 1rem 0 0.5rem;
+}
+.step-card {
+  display: flex; gap: 0.8rem; align-items: flex-start;
+  background: var(--card); border-radius: 10px;
+  padding: 0.8rem; margin-bottom: 0.4rem; box-shadow: var(--shadow);
+}
+.step-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+.step-body { flex: 1; }
+.step-time { font-size: 0.68rem; color: var(--primary); font-weight: 700; margin-bottom: 0.1rem; }
+.step-title { font-size: 0.85rem; font-weight: 600; }
+.step-detail { font-size: 0.75rem; color: var(--muted); line-height: 1.4; margin-top: 0.2rem; }
+.broker-card {
+  background: var(--card); border-radius: 10px;
+  padding: 0.8rem 1rem; margin-bottom: 0.4rem; box-shadow: var(--shadow);
+}
+.broker-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.25rem; }
+.broker-name { font-size: 0.9rem; font-weight: 700; }
+.broker-type { font-size: 0.68rem; color: var(--muted); }
+.broker-best { font-size: 0.75rem; color: var(--text); line-height: 1.35; margin-bottom: 0.5rem; }
+.broker-meta { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.72rem; margin-bottom: 0.5rem; }
+.broker-meta span { color: var(--muted); }
+.broker-meta strong { color: var(--text); }
+.broker-links { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.broker-link {
+  font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 6px;
+  text-decoration: none; background: var(--accent); color: var(--text);
+  transition: background 0.15s;
+}
+.broker-link:hover { background: var(--primary); color: var(--btn-text); }
+.broker-link.tel { background: var(--gentle); }
+.docs-list { background: var(--card); border-radius: 10px; padding: 0.1rem 1rem; box-shadow: var(--shadow); }
+.docs-item { font-size: 0.82rem; padding: 0.5rem 0; border-bottom: 1px solid var(--accent); line-height: 1.4; }
+.docs-item:last-child { border-bottom: none; }
 
 .cash-bar {
   display: flex;
@@ -706,7 +758,7 @@ let profile = null;
 let portfolio = null;
 let transactions = [];
 let priceCache = {};
-let dataMode = 'demo';
+let dataMode = 'sim'; // internal only — never shown to user
 
 let S = {
   luckyResult: null,
@@ -715,11 +767,77 @@ let S = {
   proMode: false,
   aiPrompt: '',
   buyQty: 1,
-  buyingSymbol: null,   // symbol of position card that has buy-more open
+  buyingSymbol: null,
   historyOpen: false,
+  realWorldOpen: false,
   setupBalance: 10000,
   refreshing: false,
 };
+
+// ─── UK BROKER DATA ───
+const BROKERS = [
+  {
+    name: 'Trading 212',
+    type: 'App · Beginner-friendly',
+    best: 'Free trades, no minimum deposit, fractional shares from £1. Best place to start if you\'ve never invested before.',
+    trades: 'Free',
+    min: '£1',
+    isa: true, sipp: false,
+    openTime: '15 min online',
+    url: 'https://www.trading212.com/',
+    phone: '0800 066 4900',
+  },
+  {
+    name: 'Freetrade',
+    type: 'App · Beginner-friendly',
+    best: 'Clean and simple. Free basic account. ISA and SIPP available. Good for building a long-term portfolio.',
+    trades: 'Free (basic)',
+    min: '£2',
+    isa: true, sipp: true,
+    openTime: '15 min online',
+    url: 'https://freetrade.io/',
+    phone: null,
+  },
+  {
+    name: 'Hargreaves Lansdown',
+    type: 'Full service · Most established',
+    best: "UK's largest broker. Best research tools. Phone support if things go wrong. More expensive but more hand-holding.",
+    trades: '£11.95/trade',
+    min: '£1',
+    isa: true, sipp: true,
+    openTime: '1–2 days',
+    url: 'https://www.hl.co.uk/',
+    phone: '0117 900 9000',
+  },
+  {
+    name: 'AJ Bell',
+    type: 'Full service · Mid-range',
+    best: 'Lower fees than HL. Good for ISAs and SIPPs. Solid platform. Decent customer service by phone.',
+    trades: '£9.95/trade',
+    min: '£500',
+    isa: true, sipp: true,
+    openTime: '1–3 days',
+    url: 'https://www.ajbell.co.uk/',
+    phone: '0345 279 8888',
+  },
+];
+
+const REAL_STEPS = [
+  { icon:'🖥️', time:'5 min', title:'Pick a broker', detail:'For most people starting out: Trading 212 or Freetrade. Free trades, phone app, no minimums. HL if you want proper phone support.' },
+  { icon:'📧', time:'2 min', title:'Create your account online', detail:'Just an email and password to start. No phone call needed. You can do this at midnight in your pants.' },
+  { icon:'🪪', time:'5 min', title:'Verify your identity', detail:'Photo of your passport or driving licence. Most apps scan it instantly with your phone camera. You\'re done before the kettle boils.' },
+  { icon:'📄', time:'2 min', title:'Proof of address', detail:'Bank statement or utility bill less than 3 months old. Screenshot or PDF is fine. Email it through the app.' },
+  { icon:'🏦', time:'1–2 days', title:'Transfer money in', detail:'Bank transfer from your current account. Some brokers let you fund instantly by card. Start with whatever you\'d spend on a night out.' },
+  { icon:'📱', time:'2 min', title:'Place your first real trade', detail:'Same as what you\'ve been doing here. Search, tap buy, confirm. Except this time it\'s real. Takes about the same time as ordering a pizza.' },
+  { icon:'💰', time:'T+2 days', title:'When you sell and want your money back', detail:'Sell your shares, then withdraw to your bank account. Takes 2 working days to settle (that\'s regulation, not the broker). Then lands in your bank same day.' },
+];
+
+const DOCS_NEEDED = [
+  { icon:'🪪', text:'Passport or driving licence — any nationality, must be in date' },
+  { icon:'🏠', text:'Proof of address — bank statement or utility bill, under 3 months old' },
+  { icon:'🔢', text:'National Insurance number — for UK tax reporting (find it on a payslip or P60)' },
+  { icon:'🏦', text:'Bank sort code + account number — to fund your account and withdraw profits' },
+];
 
 // ─── STORAGE ───
 function loadState() {
@@ -765,6 +883,7 @@ function render() {
   renderLucky(a);
   renderReveal(a);
   renderPositions(a);
+  renderMakeItReal(a);
   renderHistory(a);
   renderSettings(a);
 }
@@ -1063,7 +1182,7 @@ function renderHeader(a) {
   const right = el('div', { className:'header-right' });
   const refreshBtn = el('button', {
     className:'refresh-btn' + (S.refreshing ? ' spinning' : ''),
-    title:'Force refresh live prices',
+    title:'Refresh prices',
     onClick: refreshAll,
   }, '↻');
   right.appendChild(refreshBtn);
@@ -1075,15 +1194,15 @@ function renderHeader(a) {
   cash.appendChild(el('span', null, 'Invested: ', el('strong', null, fmtShort(invested))));
   hdr.appendChild(cash);
 
-  // Live indicator
-  const live = el('div', { className:'live-indicator' });
-  live.appendChild(el('span', { className:'live-dot' }));
-  const age = lastTickAt ? Math.round((Date.now() - lastTickAt) / 1000) : null;
-  const ageStr = age === null ? 'Starting…' : age < 5 ? 'Just now' : age + 's ago';
-  live.appendChild(document.createTextNode(
-    dataMode === 'live' ? 'Live prices · updated ' + ageStr : 'Simulating live · ' + ageStr
-  ));
-  hdr.appendChild(live);
+  // Live indicator — no mention of demo/real, prices are just prices
+  if (lastTickAt) {
+    const live = el('div', { className:'live-indicator' });
+    live.appendChild(el('span', { className:'live-dot' }));
+    const age = Math.round((Date.now() - lastTickAt) / 1000);
+    const ageStr = age < 5 ? 'just now' : age + 's ago';
+    live.appendChild(document.createTextNode('Prices updated ' + ageStr));
+    hdr.appendChild(live);
+  }
 
   a.appendChild(hdr);
 }
@@ -1358,6 +1477,78 @@ function renderPositions(a) {
   }
 }
 
+// ─── RENDER: MAKE IT REAL ───
+function renderMakeItReal(a) {
+  if (!portfolio || portfolio.holdings.length === 0) return;
+  const pnl = portfolioPnL();
+  const invested = portfolioInvested();
+
+  const pnlStr = pnl >= 0
+    ? 'You\'re up ' + fmtShort(Math.abs(pnl)) + ' on paper.'
+    : 'You\'re down ' + fmtShort(Math.abs(pnl)) + ' on paper — still worth knowing how this works.';
+
+  const trigger = el('button', {
+    className: 'real-trigger',
+    onClick() { S.realWorldOpen = !S.realWorldOpen; saveAll(); render(); },
+  });
+  const txt = el('div', { className:'real-trigger-text' });
+  txt.appendChild(el('div', { className:'real-trigger-heading' }, 'What would this look like in real life?'));
+  txt.appendChild(el('div', { className:'real-trigger-sub' }, pnlStr + ' Here\'s exactly what it takes to make it real.'));
+  trigger.appendChild(txt);
+  trigger.appendChild(el('span', { className:'real-trigger-arrow' + (S.realWorldOpen ? ' open' : '') }, '▶'));
+  a.appendChild(trigger);
+
+  if (!S.realWorldOpen) return;
+
+  const panel = el('div', { className:'real-panel' });
+
+  // Steps
+  panel.appendChild(el('div', { className:'real-section-title' }, 'Step by step — what you\'d actually do'));
+  for (const step of REAL_STEPS) {
+    const card = el('div', { className:'step-card' });
+    card.appendChild(el('div', { className:'step-icon' }, step.icon));
+    const body = el('div', { className:'step-body' });
+    body.appendChild(el('div', { className:'step-time' }, step.time));
+    body.appendChild(el('div', { className:'step-title' }, step.title));
+    body.appendChild(el('div', { className:'step-detail' }, step.detail));
+    card.appendChild(body);
+    panel.appendChild(card);
+  }
+
+  // Brokers
+  panel.appendChild(el('div', { className:'real-section-title' }, 'Which broker — and who to call'));
+  for (const b of BROKERS) {
+    const card = el('div', { className:'broker-card' });
+    const top = el('div', { className:'broker-top' });
+    top.appendChild(el('div', { className:'broker-name' }, b.name));
+    top.appendChild(el('div', { className:'broker-type' }, b.type));
+    card.appendChild(top);
+    card.appendChild(el('div', { className:'broker-best' }, b.best));
+    const meta = el('div', { className:'broker-meta' });
+    meta.appendChild(el('span', null, 'Trades: ', el('strong', null, b.trades)));
+    meta.appendChild(el('span', null, 'Min deposit: ', el('strong', null, b.min)));
+    meta.appendChild(el('span', null, 'ISA: ', el('strong', null, b.isa ? '✓' : '✗')));
+    meta.appendChild(el('span', null, 'SIPP: ', el('strong', null, b.sipp ? '✓' : '✗')));
+    meta.appendChild(el('span', null, 'Open account: ', el('strong', null, b.openTime)));
+    card.appendChild(meta);
+    const lnks = el('div', { className:'broker-links' });
+    lnks.appendChild(el('a', { className:'broker-link', href: b.url, target:'_blank', rel:'noopener' }, '🌐 Open account'));
+    if (b.phone) lnks.appendChild(el('a', { className:'broker-link tel', href:'tel:' + b.phone.replace(/\s/g,'') }, '📞 ' + b.phone));
+    card.appendChild(lnks);
+    panel.appendChild(card);
+  }
+
+  // Documents needed
+  panel.appendChild(el('div', { className:'real-section-title' }, 'What you\'ll need to hand'));
+  const docs = el('div', { className:'docs-list' });
+  for (const d of DOCS_NEEDED) {
+    docs.appendChild(el('div', { className:'docs-item' }, d.icon + '  ' + d.text));
+  }
+  panel.appendChild(docs);
+
+  a.appendChild(panel);
+}
+
 // ─── RENDER: HISTORY ───
 function renderHistory(a) {
   const toggle = el('button', { className:'history-toggle', onClick() { S.historyOpen = !S.historyOpen; saveAll(); render(); }});
@@ -1443,20 +1634,21 @@ function simulatePriceTick() {
 
 function startAutoRefresh() {
   if (tickInterval) clearInterval(tickInterval);
-  if (dataMode === 'live') {
-    // Live: fetch from API every 45s (polite to Yahoo)
-    tickInterval = setInterval(async () => {
-      if (portfolio && portfolio.holdings.length > 0) {
-        await refreshAll();
-        lastTickAt = Date.now();
+  // Always simulate for responsiveness; real API fetch runs in background when possible
+  tickInterval = setInterval(simulatePriceTick, 5000);
+  setTimeout(simulatePriceTick, 600);
+  // Also attempt real price fetches every 45s (silently fails if no network/rate limit)
+  setInterval(async () => {
+    if (portfolio && portfolio.holdings.length > 0) {
+      const symbols = portfolio.holdings.map(h => h.symbol);
+      for (const sym of symbols) {
+        try { await fetchPrice(sym); } catch(e) {}
+        await new Promise(r => setTimeout(r, 400));
       }
-    }, 45000);
-  } else {
-    // Demo: simulate price movement every 5s
-    tickInterval = setInterval(simulatePriceTick, 5000);
-    // First tick immediately
-    setTimeout(simulatePriceTick, 500);
-  }
+      lastTickAt = Date.now();
+      if (portfolio.holdings.length > 0) render();
+    }
+  }, 45000);
 }
 
 // ─── INIT ───
