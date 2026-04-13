@@ -436,6 +436,105 @@ body {
 }
 .ext-link-sm:hover { color: var(--primary); border-color: var(--primary); }
 
+/* ─── TIME WINDOW BAR ─── */
+.tw-bar {
+  display: flex; gap: 0.3rem; margin-bottom: 0.6rem; align-items: center;
+}
+.tw-btn {
+  padding: 0.25rem 0.55rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
+  font-family: var(--font); cursor: pointer; border: 1.5px solid var(--accent);
+  background: var(--card); color: var(--muted); transition: all 0.1s;
+}
+.tw-btn:hover { border-color: var(--primary); color: var(--text); }
+.tw-btn.tw-active { background: var(--primary); color: var(--btn-text); border-color: var(--primary); }
+.tw-loading { font-size: 0.7rem; margin-left: 0.3rem; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tw-headline {
+  font-size: 0.85rem; font-weight: 700; margin-bottom: 0.6rem;
+  padding: 0.35rem 0.7rem; background: var(--card); border-radius: 8px;
+  display: inline-block;
+}
+
+/* ─── UNDERDOG ELEMENTS ─── */
+.lucky-btn.underdog-btn { border-color: var(--warm); }
+.lucky-btn.underdog-btn:hover { background: color-mix(in srgb, var(--warm) 15%, var(--card)); border-color: var(--warm); }
+.underdog-badge {
+  font-size: 0.6rem; font-weight: 700; color: #fff;
+  padding: 0.15rem 0.45rem; border-radius: 5px; letter-spacing: 0.02em;
+  white-space: nowrap; vertical-align: middle;
+}
+.conviction-row {
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  font-size: 0.75rem; color: var(--muted); line-height: 1.4;
+  margin-bottom: 0.5rem; padding: 0.4rem 0.5rem;
+  background: var(--accent); border-radius: 7px;
+}
+.conviction-text { flex: 1; }
+.conviction-search {
+  font-size: 0.85rem; text-decoration: none; flex-shrink: 0;
+  opacity: 0.7; transition: opacity 0.1s;
+}
+.conviction-search:hover { opacity: 1; }
+
+/* ─── REAL MONEY CALCULATOR ─── */
+.realcalc-trigger {
+  width: 100%; display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card); border: 1.5px solid var(--accent);
+  border-radius: var(--radius); padding: 0.8rem 1rem;
+  cursor: pointer; text-align: left; font-family: var(--font);
+  margin-bottom: 0.5rem; transition: border-color 0.15s;
+}
+.realcalc-trigger:hover { border-color: var(--primary); }
+.realcalc-trigger-icon { font-size: 1.3rem; flex-shrink: 0; }
+.realcalc-trigger-text { flex: 1; font-size: 0.82rem; color: var(--muted); line-height: 1.3; }
+.realcalc-trigger-text strong { color: var(--text); display: block; margin-bottom: 0.1rem; }
+.realcalc-arrow { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; display: inline-block; }
+.realcalc-arrow.open { transform: rotate(90deg); }
+.realcalc-panel {
+  background: var(--card); border-radius: var(--radius);
+  border: 1.5px solid var(--primary);
+  padding: 1rem; margin-bottom: 0.8rem;
+  animation: revealIn 0.15s ease;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.realcalc-section { display: flex; flex-direction: column; gap: 0.5rem; }
+.realcalc-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.realcalc-broker-tabs { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.realcalc-broker-btn {
+  padding: 0.3rem 0.7rem; border-radius: 7px; font-size: 0.75rem; font-weight: 600;
+  font-family: var(--font); cursor: pointer; border: 1.5px solid var(--accent);
+  background: transparent; color: var(--muted); transition: all 0.1s;
+}
+.realcalc-broker-btn:hover { border-color: var(--primary); color: var(--text); }
+.realcalc-broker-btn.active { background: var(--primary); color: var(--btn-text); border-color: var(--primary); }
+.realcalc-big {
+  background: var(--accent); border-radius: 10px; padding: 1rem;
+  text-align: center;
+}
+.realcalc-big-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 0.4rem; }
+.realcalc-big-num { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 0.2rem; }
+.realcalc-big-sub { font-size: 0.68rem; color: var(--muted); display: block; margin-top: 0.15rem; }
+.realcalc-big-pnl { font-size: 0.85rem; font-weight: 700; margin-top: 0.4rem; }
+.realcalc-fees { display: flex; flex-direction: column; gap: 0.4rem; }
+.realcalc-fee-table { display: flex; flex-direction: column; gap: 0.3rem; }
+.realcalc-fee-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.77rem; color: var(--muted); padding: 0.25rem 0;
+  border-bottom: 1px solid var(--accent);
+}
+.realcalc-fee-row:last-child { border-bottom: none; }
+.realcalc-fee-total { font-weight: 700; color: var(--text); font-size: 0.82rem; padding-top: 0.3rem; }
+.refresh-slider {
+  width: 100%; accent-color: var(--primary); cursor: pointer; height: 4px;
+}
+.realcalc-slider-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.2rem; }
+.realcalc-slider-label { font-size: 0.8rem; font-weight: 700; color: var(--primary); white-space: nowrap; min-width: 4.5rem; }
+.realcalc-tick-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.55rem; color: var(--muted); margin-top: 0.1rem;
+}
+.realcalc-hint { font-size: 0.65rem; color: var(--muted); line-height: 1.4; margin-top: 0.3rem; }
+
 /* ─── HISTORY ─── */
 .history-toggle {
   width: 100%;
@@ -641,11 +740,49 @@ const POPULAR_COMPANIES = [
   { symbol:'UBER',  name:'Uber Technologies',      sector:'Travel',     why:'Rides + delivery + freight. Finally profitable. Network effects are the moat. Autonomous vehicle optionality.' },
 ];
 
+// ─── UNDERDOG COMPANIES ───
+const UNDERDOG_COMPANIES = [
+  { symbol:'IMB.L',  name:'Imperial Brands',      sector:'Income',      tag:'Income',     why:'One of the highest dividend yields on the FTSE 100 — consistently above 8%. Declining volumes but pricing power and cost cuts keep cash flowing. Controversial but the yield is real.', searchQ:'Imperial Brands dividend yield 2024' },
+  { symbol:'BLND.L', name:'British Land',          sector:'Value',       tag:'Value',      why:'UK REIT trading at a significant discount to its net asset value. Office and retail portfolio restructuring underway. If hybrid work stabilises, this is very cheap.', searchQ:'British Land REIT NAV discount 2024' },
+  { symbol:'WPP.L',  name:'WPP plc',               sector:'Contrarian',  tag:'Contrarian', why:'Advertising holding company hammered by fears over AI replacing ad agencies. But clients still need someone to run global campaigns. CEO turnaround in progress.', searchQ:'WPP advertising recovery AI threat 2024' },
+  { symbol:'INTC',   name:'Intel Corp',             sector:'Turnaround',  tag:'Turnaround', why:'Once dominant chipmaker now playing catch-up to AMD and NVIDIA. New CEO, massive fab investment programme. If they execute, the upside is enormous — if they fail, it gets ugly.', searchQ:'Intel turnaround Pat Gelsinger foundry 2024' },
+  { symbol:'PFE',    name:'Pfizer Inc',             sector:'Value',       tag:'Value',      why:"Post-COVID revenue cliff has smashed the stock. But they have a deep pipeline and the Seagen acquisition adds oncology. 6%+ dividend yield at current prices — the market's being too harsh.", searchQ:'Pfizer dividend yield pipeline 2024' },
+  { symbol:'WBA',    name:'Walgreens Boots Alliance',sector:'Contrarian', tag:'Contrarian', why:"US pharmacy chain that everyone's written off. Closing stores, cutting dividend, but still processing 1B+ prescriptions a year. Extreme pessimism can create extreme opportunity.", searchQ:'Walgreens turnaround pharmacy 2024' },
+  { symbol:'F',      name:'Ford Motor Co',           sector:'Value',       tag:'Value',      why:'EV losses eating into profits but F-Series trucks remain America\'s best-selling vehicle for 47 years. Solid dividend, low P/E. Blue-collar brand isn\'t going away.', searchQ:'Ford F-150 EV losses valuation 2024' },
+  { symbol:'MO',     name:'Altria Group',            sector:'Income',      tag:'Income',     why:'Cigarette volumes declining, but smoke-free products (IYOS, on!) growing. 9%+ dividend yield. The income machine that everyone feels guilty about owning.', searchQ:'Altria dividend yield smokeless products 2024' },
+  { symbol:'PARA',   name:'Paramount Global',        sector:'Contrarian',  tag:'Contrarian', why:'Legacy media in structural decline, but Paramount+ is gaining subscribers and the IP library (Star Trek, Mission Impossible, SpongeBob) has real value. Merger target.', searchQ:'Paramount acquisition streaming value 2024' },
+  { symbol:'NIO',    name:'NIO Inc',                 sector:'Speculative', tag:'Speculative',why:'Chinese EV startup burning cash but building premium brand in the world\'s largest EV market. Battery swap network is unique. High risk, high optionality.', searchQ:'NIO China EV market share 2024' },
+  { symbol:'HOOD',   name:'Robinhood Markets',       sector:'Turnaround',  tag:'Turnaround', why:'Crashed after the meme-stock frenzy but has 23M+ funded accounts and expanding into crypto, retirement, and UK. If they become the Schwab for millennials, this is cheap.', searchQ:'Robinhood growth retirement accounts 2024' },
+  { symbol:'OPEN',   name:'Opendoor Technologies',   sector:'Speculative', tag:'Speculative',why:'Tried to automate home-buying and got crushed when rates rose. But the iBuying model could work in a more stable market. Extremely beaten-down, requires patience.', searchQ:'Opendoor iBuying recovery housing market 2024' },
+  { symbol:'RIVN',   name:'Rivian Automotive',       sector:'Speculative', tag:'Speculative',why:'Amazon-backed EV truck maker. R1T has won awards for quality. Commercial van contract with Amazon is real revenue. Burning cash but more credible than most EV startups.', searchQ:'Rivian Amazon vans production 2024' },
+  { symbol:'MKS.L',  name:'Marks & Spencer',         sector:'Hidden gem',  tag:'Hidden gem', why:'M&S food business is quietly excellent — fastest-growing UK grocery brand. Fashion turnaround working. Yet the stock still trades like a struggling retailer. Re-rating coming.', searchQ:'Marks Spencer food turnaround results 2024' },
+  { symbol:'IHG.L',  name:'IHG Hotels & Resorts',    sector:'Hidden gem',  tag:'Hidden gem', why:'InterContinental, Holiday Inn, Crowne Plaza. Asset-light model (franchise fees not owned hotels). Growing in Asia. Often overlooked vs Marriott/Hilton despite similar quality.', searchQ:'IHG InterContinental asset-light model 2024' },
+  { symbol:'ABF.L',  name:'Associated British Foods', sector:'Hidden gem', tag:'Hidden gem', why:'Primark (cash-only, no returns, massive margins) is buried inside a food conglomerate. The sum of parts is worth more than the whole. Low P/E, steady dividend.', searchQ:'ABF Primark valuation sum of parts 2024' },
+  { symbol:'RNG',    name:'RingCentral',              sector:'Turnaround',  tag:'Turnaround', why:'Cloud communications market leader that got slaughtered in the rate-rise selloff. Enterprise UCaaS growing but profitability concerns linger. If margins improve, massive upside.', searchQ:'RingCentral UCaaS profitability 2024' },
+  { symbol:'XPEV',   name:'XPeng Inc',                sector:'Speculative', tag:'Speculative',why:'Chinese EV maker with strong tech — ADAS system (XNGP) arguably ahead of Tesla in China. Collaboration with Volkswagen validates the tech. High risk, China exposure.', searchQ:'XPeng ADAS Volkswagen deal 2024' },
+  { symbol:'HP',     name:'Helmerich & Payne',        sector:'Income',      tag:'Income',     why:'Oil drilling contractor with the newest, most efficient rig fleet. Benefits from US shale capex cycles. 6%+ dividend, fortress balance sheet. Boring but cheap.', searchQ:'Helmerich Payne drilling dividend 2024' },
+  { symbol:'VFC',    name:'VF Corporation',           sector:'Contrarian',  tag:'Contrarian', why:'Vans, The North Face, Timberland under one roof. Debt-laden after acquisitions, dividend cut, CEO change. But the brands are real — Vans alone is worth more than the market cap.', searchQ:'VF Corporation Vans brand turnaround 2024' },
+  { symbol:'GM',     name:'General Motors',           sector:'Value',       tag:'Value',      why:'Trading at 5× earnings with a massive buyback programme. EV losses are the concern but ICE profits fund the transition. Cruise robotaxi setback is baked in.', searchQ:'GM P/E ratio buyback EV losses 2024' },
+  { symbol:'BARC.L', name:'Barclays plc',             sector:'Value',       tag:'Value',      why:'UK bank at 0.5× book value with investment banking upside. New CEO cost-cutting drive. Capital returns via buybacks and dividends. Cheaper than US peers.', searchQ:'Barclays book value buyback CEO 2024' },
+  { symbol:'REL.L',  name:'RELX plc',                 sector:'Hidden gem',  tag:'Hidden gem', why:'Data analytics giant hiding in plain sight. LexisNexis, Reed Exhibitions, Elsevier. AI tailwind for legal and scientific databases. Compound machine for 30 years.', searchQ:'RELX LexisNexis AI analytics 2024' },
+  { symbol:'EXPN.L', name:'Experian plc',             sector:'Hidden gem',  tag:'Hidden gem', why:'Credit bureau and data analytics. Essential infrastructure — banks literally cannot lend without them. North America and emerging markets growth. Defensive moat.', searchQ:'Experian credit bureau growth 2024' },
+];
+
+const UNDERDOG_TAG_COLORS = {
+  'Income':     '#5a8a5a',
+  'Value':      '#5a7a9a',
+  'Contrarian': '#8a6a4a',
+  'Turnaround': '#7a5a8a',
+  'Hidden gem': '#6a8a5a',
+  'Speculative':'#9a5a5a',
+};
+
 // ─── STATE ───
 let profile = null;
 let portfolio = null;
 let transactions = [];
 let priceCache = {};
+let historicalCache = {}; // symbol+window → { price, fetchedAt }
 let dataMode = 'sim'; // internal only — never shown to user
 
 let S = {
@@ -659,6 +796,11 @@ let S = {
   realWorldOpen: false,
   setupBalance: 10000,
   refreshing: false,
+  timeWindow: null,     // null = all-time | '1H' | '12H' | '1D' | '5D' | '7D'
+  twLoading: false,     // fetching historical prices for the window
+  realCalcOpen: false,  // "what if real?" panel
+  realCalcBroker: 'T212', // selected broker for fee calc
+  liveRefreshMs: 0,     // 0 = off, otherwise ms between price refreshes
 };
 
 // ─── UK BROKER DATA ───
@@ -770,6 +912,7 @@ function render() {
   renderLucky(a);
   renderSlip(a);
   renderPositions(a);
+  renderRealCalc(a);
   renderMakeItReal(a);
   renderHistory(a);
   renderSettings(a);
@@ -892,6 +1035,57 @@ async function refreshAll() {
   render();
 }
 
+// ─── HISTORICAL PRICE FOR TIME WINDOW ───
+const TW_CONFIG = {
+  '1H':  { range:'1d',  interval:'5m',  msBack: 60*60*1000 },
+  '12H': { range:'1d',  interval:'30m', msBack: 12*60*60*1000 },
+  '1D':  { range:'5d',  interval:'1h',  msBack: 24*60*60*1000 },
+  '5D':  { range:'1mo', interval:'1d',  msBack: 5*24*60*60*1000 },
+  '7D':  { range:'1mo', interval:'1d',  msBack: 7*24*60*60*1000 },
+};
+
+async function fetchHistoricalPrice(symbol, window) {
+  const key = symbol + '_' + window;
+  const cached = historicalCache[key];
+  if (cached && (Date.now() - cached.fetchedAt) < 5 * 60 * 1000) return cached.price;
+  const cfg = TW_CONFIG[window];
+  if (!cfg) return null;
+  try {
+    const url = 'https://corsproxy.io/?' + encodeURIComponent(
+      'https://query1.finance.yahoo.com/v8/finance/chart/' + symbol + '?range=' + cfg.range + '&interval=' + cfg.interval
+    );
+    const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const result = data.chart.result[0];
+    const timestamps = result.timestamp;
+    const closes = result.indicators.quote[0].close;
+    const targetTs = (Date.now() - cfg.msBack) / 1000;
+    let best = null, bestDiff = Infinity;
+    for (let i = 0; i < timestamps.length; i++) {
+      const diff = Math.abs(timestamps[i] - targetTs);
+      if (diff < bestDiff && closes[i] != null) { bestDiff = diff; best = closes[i]; }
+    }
+    if (best != null) {
+      historicalCache[key] = { price: best, fetchedAt: Date.now() };
+      return best;
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function loadTimeWindow(window) {
+  if (!portfolio || portfolio.holdings.length === 0) return;
+  S.timeWindow = window;
+  S.twLoading = true;
+  render();
+  for (const h of portfolio.holdings) {
+    await fetchHistoricalPrice(h.symbol, window).catch(() => {});
+  }
+  S.twLoading = false;
+  render();
+}
+
 // ─── SPARKLINE ───
 function sparklineSVG(prices, w, h) {
   if (!prices || prices.length < 2) return document.createTextNode('');
@@ -917,11 +1111,13 @@ function executeBuy(symbol, name, qty, price) {
   if (h) {
     h.lots.push({ qty, costBasis: price, boughtAt: new Date().toISOString() });
   } else {
-    const co = POPULAR_COMPANIES.find(c => c.symbol === symbol);
+    const co = POPULAR_COMPANIES.find(c => c.symbol === symbol) || UNDERDOG_COMPANIES.find(c => c.symbol === symbol);
     portfolio.holdings.push({
       id: uid(), symbol, name,
       lots: [{ qty, costBasis: price, boughtAt: new Date().toISOString() }],
       conviction: co ? co.why : '',
+      tag: co && co.tag ? co.tag : null,
+      searchQ: co && co.searchQ ? co.searchQ : null,
     });
   }
   transactions.push({ id: uid(), type:'BUY', symbol, name, qty, price, total, timestamp: new Date().toISOString() });
@@ -964,6 +1160,13 @@ function luckyPreset() {
   const avoid = new Set([...S.slip.map(s => s.symbol), ...(portfolio ? portfolio.holdings.map(h => h.symbol) : [])]);
   const pool = POPULAR_COMPANIES.filter(c => !avoid.has(c.symbol));
   const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : POPULAR_COMPANIES[Math.floor(Math.random() * POPULAR_COMPANIES.length)];
+  addToSlip(pick);
+}
+
+function luckyUnderdog() {
+  const avoid = new Set([...S.slip.map(s => s.symbol), ...(portfolio ? portfolio.holdings.map(h => h.symbol) : [])]);
+  const pool = UNDERDOG_COMPANIES.filter(c => !avoid.has(c.symbol));
+  const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : UNDERDOG_COMPANIES[Math.floor(Math.random() * UNDERDOG_COMPANIES.length)];
   addToSlip(pick);
 }
 
@@ -1135,6 +1338,7 @@ function renderLucky(a) {
   };
   btns.appendChild(makeBtn('🎲', "I'm Feeling Lucky", 'Random from 50 picks', luckyPreset));
   btns.appendChild(makeBtn('🌐', "I'm Feeling Lucky", 'Trending right now', luckyWeb));
+  btns.appendChild(makeBtn('🐛', 'Underdog Pick', 'Less obvious, more interesting', luckyUnderdog, 'underdog-btn'));
   if (S.proMode) btns.appendChild(makeBtn('🧠', 'AI Pick', 'Claude suggests', luckyAI, 'ai-btn'));
   sec.appendChild(btns);
 
@@ -1249,6 +1453,49 @@ function renderPositions(a) {
     return;
   }
 
+  // ── Time window bar ──
+  const TW_OPTIONS = [
+    { key: null,  label: 'All time' },
+    { key: '1H',  label: '1H' },
+    { key: '12H', label: '12H' },
+    { key: '1D',  label: '1D' },
+    { key: '5D',  label: '5D' },
+    { key: '7D',  label: '7D' },
+  ];
+  const twBar = el('div', { className:'tw-bar' });
+  TW_OPTIONS.forEach(opt => {
+    const btn = el('button', {
+      className: 'tw-btn' + (S.timeWindow === opt.key ? ' tw-active' : ''),
+      onClick() {
+        if (opt.key === null) { S.timeWindow = null; render(); }
+        else loadTimeWindow(opt.key);
+      },
+    }, opt.label);
+    twBar.appendChild(btn);
+  });
+  if (S.twLoading) twBar.appendChild(el('span', { className:'tw-loading' }, '⏳'));
+  a.appendChild(twBar);
+
+  // ── Windowed aggregate P&L headline ──
+  if (S.timeWindow && !S.twLoading) {
+    let twTotal = 0, twCounted = 0;
+    for (const h of holdings) {
+      const price = getPrice(h.symbol);
+      const startPrice = (historicalCache[h.symbol + '_' + S.timeWindow] || {}).price;
+      if (price && startPrice) {
+        twTotal += (price - startPrice) * holdingQty(h);
+        twCounted++;
+      }
+    }
+    if (twCounted > 0) {
+      const up = twTotal >= 0;
+      const hl = el('div', { className:'tw-headline ' + (up ? 'pnl-up' : 'pnl-dn') });
+      hl.appendChild(el('span', null, 'Last ' + S.timeWindow + ': '));
+      hl.appendChild(el('strong', null, (up ? '▲ +' : '▼ ') + fmtShort(twTotal)));
+      a.appendChild(hl);
+    }
+  }
+
   const grid = el('div', { className:'pos-grid' });
 
   holdings.forEach((holding, idx) => {
@@ -1256,10 +1503,20 @@ function renderPositions(a) {
     const prices = getPriceHistory(holding.symbol);
     const ch = getPriceChange(holding.symbol);
     const qty = holdingQty(holding);
-    const pnl = holdingPnL(holding);
-    const pnlPct = holdingPnLPct(holding);
-    const pnlUp = pnl >= 0;
     const isExpanded = S.expandedSymbol === holding.symbol;
+
+    // Windowed P&L if a time window is set
+    let twPnl = null, twPnlPct = null;
+    if (S.timeWindow) {
+      const startPrice = (historicalCache[holding.symbol + '_' + S.timeWindow] || {}).price;
+      if (price && startPrice) {
+        twPnl = (price - startPrice) * qty;
+        twPnlPct = ((price - startPrice) / startPrice) * 100;
+      }
+    }
+    const pnl = twPnl !== null ? twPnl : holdingPnL(holding);
+    const pnlPct = twPnlPct !== null ? twPnlPct : holdingPnLPct(holding);
+    const pnlUp = pnl >= 0;
 
     // Tile
     const tile = el('div', {
@@ -1278,7 +1535,10 @@ function renderPositions(a) {
     tile.appendChild(el('div', {
       className:'pos-tile-pnl ' + (pnlUp ? 'pnl-up' : 'pnl-dn'),
     }, (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl)));
-    tile.appendChild(el('div', { className:'pos-tile-sub' }, qty + ' share' + (qty !== 1 ? 's' : '') + ' · ' + fmtPct(pnlPct)));
+    const subLabel = S.timeWindow
+      ? qty + ' share' + (qty !== 1 ? 's' : '') + ' · ' + fmtPct(pnlPct) + ' (' + S.timeWindow + ')'
+      : qty + ' share' + (qty !== 1 ? 's' : '') + ' · ' + fmtPct(pnlPct);
+    tile.appendChild(el('div', { className:'pos-tile-sub' }, subLabel));
 
     grid.appendChild(tile);
 
@@ -1306,13 +1566,40 @@ function renderPositions(a) {
       const buyDate = new Date(oldestMs).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
       const pnlUp = pnl >= 0;
 
+      // Windowed P&L in expanded panel
+      let twPnlDetail = null, twPnlPctDetail = null;
+      if (S.timeWindow) {
+        const startP = (historicalCache[holding.symbol + '_' + S.timeWindow] || {}).price;
+        if (price && startP) {
+          twPnlDetail = (price - startP) * qty;
+          twPnlPctDetail = ((price - startP) / startP) * 100;
+        }
+      }
+
       const detail = el('div', { className:'pos-detail' });
 
       const top = el('div', { className:'pos-detail-top' });
       top.appendChild(el('span', { className:'pos-detail-sym' }, holding.symbol));
       top.appendChild(el('span', { className:'pos-detail-name' }, holding.name));
+      // Underdog tag badge
+      if (holding.tag) {
+        const tagColor = UNDERDOG_TAG_COLORS[holding.tag] || 'var(--muted)';
+        const badge = el('span', { className:'underdog-badge', style:'background:' + tagColor }, holding.tag);
+        top.appendChild(badge);
+      }
       top.appendChild(el('button', { className:'slip-clear-btn', onClick() { S.expandedSymbol = null; render(); }}, '✕'));
       detail.appendChild(top);
+
+      // Conviction text + tooltip link for underdogs
+      if (holding.conviction) {
+        const convRow = el('div', { className:'conviction-row' });
+        convRow.appendChild(el('span', { className:'conviction-text' }, holding.conviction));
+        if (holding.searchQ) {
+          const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(holding.searchQ);
+          convRow.appendChild(el('a', { className:'conviction-search', href: searchUrl, target:'_blank', rel:'noopener', title:'Search for evidence' }, '🔎'));
+        }
+        detail.appendChild(convRow);
+      }
 
       const stats = el('div', { className:'pos-detail-stats' });
       stats.appendChild(el('span', null, el('strong', null, qty + ' share' + (qty !== 1 ? 's' : ''))));
@@ -1321,19 +1608,23 @@ function renderPositions(a) {
       stats.appendChild(el('span', null, 'cost ', el('strong', null, fmtShort(cost))));
       stats.appendChild(el('span', null, 'value ', el('strong', null, fmtShort(val))));
       stats.appendChild(el('span', { className: pnlUp ? 'pnl-up' : 'pnl-dn', style:'font-weight:700' },
-        (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ')'
+        (pnlUp ? '▲ +' : '▼ ') + fmtShort(pnl) + ' (' + fmtPct(pnlPct) + ') all time'
       ));
+      if (twPnlDetail !== null) {
+        const twUp = twPnlDetail >= 0;
+        stats.appendChild(el('span', { className: twUp ? 'pnl-up' : 'pnl-dn', style:'font-weight:700' },
+          (twUp ? '▲ +' : '▼ ') + fmtShort(twPnlDetail) + ' (' + fmtPct(twPnlPctDetail) + ') last ' + S.timeWindow
+        ));
+      }
       detail.appendChild(stats);
 
       const acts = el('div', { className:'pos-detail-acts' });
-      // Add more to slip
       if (!slipHas(holding.symbol)) {
         acts.appendChild(el('button', { className:'act-btn act-buy', onClick() {
           addToSlip({ symbol: holding.symbol, name: holding.name, sector: '', why: holding.conviction || '' });
           S.expandedSymbol = null; render();
         }}, '+ Add to slip'));
       }
-      // Quick sell
       if (price) {
         acts.appendChild(el('button', { className:'act-btn act-sell', onClick() {
           if (confirm('Sell all ' + qty + ' shares of ' + holding.symbol + '?')) {
@@ -1343,9 +1634,8 @@ function renderPositions(a) {
       }
       detail.appendChild(acts);
 
-      // External links
       const sym = holding.symbol;
-      const isETF = (POPULAR_COMPANIES.find(c => c.symbol === sym) || {}).sector === 'ETF';
+      const isETF = (POPULAR_COMPANIES.find(c => c.symbol === sym) || UNDERDOG_COMPANIES.find(c => c.symbol === sym) || {}).sector === 'ETF';
       const cleanSym = sym.replace('.L','').toLowerCase();
       const lnks = el('div', { className:'pos-detail-links' });
       lnks.appendChild(el('a', { className:'ext-link-sm', href:'https://finance.yahoo.com/quote/' + encodeURIComponent(sym), target:'_blank', rel:'noopener' }, '📈 Live price'));
@@ -1357,6 +1647,183 @@ function renderPositions(a) {
       a.appendChild(detail);
     }
   }
+}
+
+// ─── RENDER: REAL MONEY CALCULATOR ───
+const BROKER_FEES = {
+  'T212':  { name:'Trading 212', perTrade: 0,     currency:'GBP', stampDuty: true },
+  'FREE':  { name:'Freetrade',   perTrade: 0,     currency:'GBP', stampDuty: true },
+  'HL':    { name:'Hargreaves Lansdown', perTrade: 11.95, currency:'GBP', stampDuty: true },
+  'AJB':   { name:'AJ Bell',     perTrade: 9.95,  currency:'GBP', stampDuty: true },
+};
+
+const REFRESH_OPTIONS = [
+  { label:'Off',       ms: 0 },
+  { label:'15 sec',    ms: 15000 },
+  { label:'1 min',     ms: 60000 },
+  { label:'5 min',     ms: 300000 },
+  { label:'15 min',    ms: 900000 },
+  { label:'2 hours',   ms: 7200000 },
+  { label:'Every day', ms: 86400000 },
+];
+
+function renderRealCalc(a) {
+  if (!portfolio) return;
+
+  // ── Trigger button ──
+  const trigger = el('button', {
+    className: 'realcalc-trigger',
+    onClick() { S.realCalcOpen = !S.realCalcOpen; saveAll(); render(); },
+  });
+  trigger.appendChild(el('span', { className:'realcalc-trigger-icon' }, '💷'));
+  const trigText = el('span', { className:'realcalc-trigger-text' });
+  trigText.appendChild(el('strong', null, 'What would this cost for real?'));
+  trigText.appendChild(el('span', null, ' After fees, stamp duty, and real broker costs.'));
+  trigger.appendChild(trigText);
+  trigger.appendChild(el('span', { className:'realcalc-arrow' + (S.realCalcOpen ? ' open' : '') }, '▶'));
+  a.appendChild(trigger);
+
+  if (!S.realCalcOpen) return;
+
+  const panel = el('div', { className:'realcalc-panel' });
+
+  // ── Broker selector ──
+  const bRow = el('div', { className:'realcalc-section' });
+  bRow.appendChild(el('div', { className:'realcalc-label' }, 'Which broker?'));
+  const bTabs = el('div', { className:'realcalc-broker-tabs' });
+  Object.entries(BROKER_FEES).forEach(([key, b]) => {
+    bTabs.appendChild(el('button', {
+      className: 'realcalc-broker-btn' + (S.realCalcBroker === key ? ' active' : ''),
+      onClick() { S.realCalcBroker = key; saveAll(); render(); },
+    }, b.name));
+  });
+  bRow.appendChild(bTabs);
+  panel.appendChild(bRow);
+
+  // ── Fee calculation ──
+  const broker = BROKER_FEES[S.realCalcBroker];
+  const holdings = portfolio ? portfolio.holdings : [];
+  const numTrades = holdings.length;
+
+  let totalInvested = 0;
+  let totalCurrentValue = 0;
+  const rows = [];
+
+  for (const h of holdings) {
+    const price = getPrice(h.symbol);
+    const qty = holdingQty(h);
+    const cost = holdingCost(h);
+    const value = price ? price * qty : cost;
+    const tradeFee = broker.perTrade;
+    // Stamp duty: 0.5% on UK shares (symbols ending .L) bought, not on ETFs/US
+    const isUK = h.symbol.endsWith('.L');
+    const isETF = (POPULAR_COMPANIES.find(c => c.symbol === h.symbol) || UNDERDOG_COMPANIES.find(c => c.symbol === h.symbol) || {}).sector === 'ETF';
+    const stampRate = (broker.stampDuty && isUK && !isETF) ? 0.005 : 0;
+    const stampDuty = cost * stampRate;
+    const totalFeeForPosition = tradeFee + stampDuty;
+    totalInvested += cost + totalFeeForPosition;
+    totalCurrentValue += value;
+    rows.push({ h, price, qty, cost, value, tradeFee, stampDuty, totalFeeForPosition });
+  }
+
+  const totalTradeFees = rows.reduce((s, r) => s + r.tradeFee, 0);
+  const totalStampDuty = rows.reduce((s, r) => s + r.stampDuty, 0);
+  const totalAllFees = totalTradeFees + totalStampDuty;
+  const realStartingCash = portfolio ? portfolio.cash + totalInvested : 0;
+  const realCurrentValue = portfolio.cash + totalCurrentValue - totalAllFees;
+  const realPnl = realCurrentValue - realStartingCash;
+  const realPnlUp = realPnl >= 0;
+
+  // ── Big number ──
+  const bigCard = el('div', { className:'realcalc-big' });
+  bigCard.appendChild(el('div', { className:'realcalc-big-label' }, 'If you\'d traded with real money today'));
+  const bigNum = el('div', { className:'realcalc-big-num' });
+  bigNum.appendChild(el('span', null, fmtShort(realCurrentValue)));
+  bigNum.appendChild(el('span', { className:'realcalc-big-sub' }, 'in your account right now'));
+  bigCard.appendChild(bigNum);
+  const bigPnl = el('div', { className:'realcalc-big-pnl ' + (realPnlUp ? 'pnl-up' : 'pnl-dn') });
+  bigPnl.appendChild(document.createTextNode((realPnlUp ? '▲ +' : '▼ ') + fmtShort(Math.abs(realPnl)) + ' vs what you put in'));
+  bigCard.appendChild(bigPnl);
+  panel.appendChild(bigCard);
+
+  // ── Fee breakdown ──
+  const feeCard = el('div', { className:'realcalc-fees' });
+  feeCard.appendChild(el('div', { className:'realcalc-label' }, 'Fee breakdown'));
+  const feeTable = el('div', { className:'realcalc-fee-table' });
+
+  if (totalTradeFees > 0) {
+    const fRow = el('div', { className:'realcalc-fee-row' });
+    fRow.appendChild(el('span', null, 'Trading fees (' + numTrades + ' trade' + (numTrades !== 1 ? 's' : '') + ' × ' + fmtShort(broker.perTrade) + ')'));
+    fRow.appendChild(el('span', { className:'pnl-dn' }, '−' + fmtShort(totalTradeFees)));
+    feeTable.appendChild(fRow);
+  } else {
+    const fRow = el('div', { className:'realcalc-fee-row' });
+    fRow.appendChild(el('span', null, 'Trading fees'));
+    fRow.appendChild(el('span', { className:'pnl-up' }, 'Free ✓'));
+    feeTable.appendChild(fRow);
+  }
+
+  if (totalStampDuty > 0) {
+    const sRow = el('div', { className:'realcalc-fee-row' });
+    sRow.appendChild(el('span', null, 'Stamp duty (0.5% on UK shares)'));
+    sRow.appendChild(el('span', { className:'pnl-dn' }, '−' + fmtShort(totalStampDuty)));
+    feeTable.appendChild(sRow);
+  }
+
+  const totRow = el('div', { className:'realcalc-fee-row realcalc-fee-total' });
+  totRow.appendChild(el('span', null, 'Total fees eaten'));
+  totRow.appendChild(el('span', { className:'pnl-dn' }, '−' + fmtShort(totalAllFees)));
+  feeTable.appendChild(totRow);
+
+  feeCard.appendChild(feeTable);
+  panel.appendChild(feeCard);
+
+  // ── Per-position breakdown ──
+  if (rows.length > 0) {
+    const posCard = el('div', { className:'realcalc-fees' });
+    posCard.appendChild(el('div', { className:'realcalc-label' }, 'Per position'));
+    rows.forEach(r => {
+      const pRow = el('div', { className:'realcalc-fee-row' });
+      const pnlUp = r.value >= r.cost;
+      pRow.appendChild(el('span', null, r.h.symbol + ' · ' + r.qty + ' share' + (r.qty !== 1 ? 's' : '')));
+      const right = el('span');
+      right.appendChild(el('span', { className: pnlUp ? 'pnl-up' : 'pnl-dn' }, fmtShort(r.value)));
+      if (r.totalFeeForPosition > 0) right.appendChild(el('span', { className:'pnl-dn', style:'font-size:0.65rem;margin-left:0.3rem' }, '−' + fmtShort(r.totalFeeForPosition) + ' fees'));
+      pRow.appendChild(right);
+      posCard.appendChild(pRow);
+    });
+    panel.appendChild(posCard);
+  }
+
+  // ── Live refresh slider ──
+  const refreshCard = el('div', { className:'realcalc-fees' });
+  refreshCard.appendChild(el('div', { className:'realcalc-label' }, 'Auto-refresh prices'));
+  const sliderRow = el('div', { className:'realcalc-slider-row' });
+  const currentIdx = REFRESH_OPTIONS.findIndex(o => o.ms === S.liveRefreshMs);
+  const slider = el('input', {
+    type: 'range', min: '0', max: String(REFRESH_OPTIONS.length - 1),
+    value: String(currentIdx >= 0 ? currentIdx : 0),
+    className: 'refresh-slider',
+  });
+  slider.addEventListener('input', () => {
+    const idx = parseInt(slider.value);
+    S.liveRefreshMs = REFRESH_OPTIONS[idx].ms;
+    saveAll();
+    startAutoRefresh();
+    sliderLabel.textContent = REFRESH_OPTIONS[idx].label;
+  });
+  const sliderLabel = el('div', { className:'realcalc-slider-label' }, REFRESH_OPTIONS[currentIdx >= 0 ? currentIdx : 0].label);
+  sliderRow.appendChild(slider);
+  sliderRow.appendChild(sliderLabel);
+
+  const tickLabels = el('div', { className:'realcalc-tick-labels' });
+  REFRESH_OPTIONS.forEach(o => tickLabels.appendChild(el('span', null, o.label)));
+  refreshCard.appendChild(sliderRow);
+  refreshCard.appendChild(tickLabels);
+  refreshCard.appendChild(el('div', { className:'realcalc-hint' }, 'The simulation ticks every 5s regardless — this controls real price fetches from Yahoo Finance.'));
+  panel.appendChild(refreshCard);
+
+  a.appendChild(panel);
 }
 
 // ─── RENDER: MAKE IT REAL ───
@@ -1514,23 +1981,30 @@ function simulatePriceTick() {
   if (portfolio && (portfolio.holdings.length > 0 || S.luckyResult)) render();
 }
 
+let liveRefreshInterval = null;
+
 function startAutoRefresh() {
   if (tickInterval) clearInterval(tickInterval);
-  // Always simulate for responsiveness; real API fetch runs in background when possible
+  if (liveRefreshInterval) clearInterval(liveRefreshInterval);
+
+  // Price simulation tick — always on, 5s
   tickInterval = setInterval(simulatePriceTick, 5000);
   setTimeout(simulatePriceTick, 600);
-  // Also attempt real price fetches every 45s (silently fails if no network/rate limit)
-  setInterval(async () => {
+
+  // Real price fetch — falls back to 45s minimum, or user-configured interval
+  const userMs = S && S.liveRefreshMs > 0 ? S.liveRefreshMs : 45000;
+  const fetchMs = Math.max(userMs, 15000); // never faster than 15s to avoid rate limits
+  liveRefreshInterval = setInterval(async () => {
     if (portfolio && portfolio.holdings.length > 0) {
       const symbols = portfolio.holdings.map(h => h.symbol);
       for (const sym of symbols) {
         try { await fetchPrice(sym); } catch(e) {}
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 300));
       }
       lastTickAt = Date.now();
       if (portfolio.holdings.length > 0) render();
     }
-  }, 45000);
+  }, fetchMs);
 }
 
 // ─── INIT ───
