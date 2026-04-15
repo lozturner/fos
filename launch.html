@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loz — Launch Pad</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0e0e12;
+    color: #e0ddf5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 32px;
+  }
+  h1 { font-size: 1.1rem; letter-spacing: 0.15em; color: #7c6fdd; text-transform: uppercase; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+  }
+  .card {
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    border-radius: 12px;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .card:hover { border-color: #7c6fdd; transform: translateY(-2px); }
+  .card:active { transform: translateY(0); }
+  .icon { font-size: 1.8rem; }
+  .name { font-weight: 600; font-size: 0.95rem; }
+  .desc { font-size: 0.78rem; color: #888; line-height: 1.4; }
+  .port { font-size: 0.7rem; color: #444; margin-top: auto; }
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: #2a2a38;
+    color: #7c6fdd;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    align-self: flex-start;
+  }
+  .note {
+    font-size: 0.78rem;
+    color: #555;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+  .note code {
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #a89ff7;
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Loz — Launch Pad</h1>
+
+<div class="grid">
+
+  <a class="card" href="http://localhost:8773/woop-wishlist.html" target="_blank">
+    <div class="icon">🛒</div>
+    <div class="name">Wishlist</div>
+    <div class="badge">browser</div>
+    <div class="desc">Owned & want list with AI image verification</div>
+    <div class="port">:8773</div>
+  </a>
+
+  <a class="card" href="http://localhost:8771/woop-circuit.html" target="_blank">
+    <div class="icon">⚡</div>
+    <div class="name">Circuit Board</div>
+    <div class="badge">browser</div>
+    <div class="desc">Subscriptions, refunds, buy queue as logic gates</div>
+    <div class="port">:8771</div>
+  </a>
+
+  <a class="card" href="http://localhost:8767/spend-chat.html" target="_blank">
+    <div class="icon">💬</div>
+    <div class="name">Spend Chat</div>
+    <div class="badge">browser</div>
+    <div class="desc">Anti-shame purchase reflection & timeline</div>
+    <div class="port">:8767</div>
+  </a>
+
+  <a class="card" href="http://localhost:8769/spend-dashboard.html" target="_blank">
+    <div class="icon">🏦</div>
+    <div class="name">Dashboard</div>
+    <div class="badge">browser</div>
+    <div class="desc">Nationwide-style spending overview</div>
+    <div class="port">:8769</div>
+  </a>
+
+  <a class="card" href="http://localhost:8781/" target="_blank">
+    <div class="icon">🎤</div>
+    <div class="name">Whisper Float</div>
+    <div class="badge">browser</div>
+    <div class="desc">Hold-to-record voice → clipboard widget</div>
+    <div class="port">:8781</div>
+  </a>
+
+</div>
+
+<p class="note">
+  Python backends must be running first:<br>
+  <code>spend-watch.pyw</code> &nbsp;·&nbsp;
+  <code>whisper-server.py</code> &nbsp;·&nbsp;
+  <code>image-resolver.py</code>
+</p>
+
+</body>
+</html>
