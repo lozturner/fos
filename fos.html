@@ -446,6 +446,22 @@ body {
 .sell-all-btn:hover { background: var(--loss); color: #fff; }
 .sell-all-btn:active { transform: scale(0.95); }
 
+/* ─── DAY-BY-DAY ROWS ─── */
+.day-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.3rem 0; border-bottom: 1px solid var(--accent);
+}
+.day-row:last-of-type { border-bottom: none; }
+.day-today { background: color-mix(in srgb, var(--primary) 6%, transparent); border-radius: 6px; padding: 0.3rem 0.4rem; }
+.day-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; min-width: 110px; }
+.day-bar-track { flex: 1; height: 10px; background: var(--accent); border-radius: 5px; overflow: hidden; }
+.day-bar { height: 100%; border-radius: 5px; min-width: 3px; transition: width 0.3s ease; }
+.day-up { background: var(--gain); }
+.day-dn { background: var(--loss); }
+.day-meta { display: flex; align-items: center; gap: 0; white-space: nowrap; min-width: 120px; justify-content: flex-end; }
+.day-pnl { font-size: 0.78rem; font-weight: 700; }
+.day-mover { font-size: 0.65rem; color: var(--muted); margin-left: 0.3rem; }
+
 /* ─── CHART CARD ─── */
 .chart-card {
   background: var(--card); border-radius: var(--radius);
@@ -924,6 +940,8 @@ function saveAll() {
 }
 
 // ─── SNAPSHOT SYSTEM ───
+let _lastSnapshotDay = null;
+
 function recordSnapshot(forced) {
   if (!portfolio) return;
   const value = portfolioTotal();
@@ -931,9 +949,19 @@ function recordSnapshot(forced) {
   const last = snapshots[snapshots.length - 1];
   // Throttle auto-snapshots to 1 per 2 minutes; forced (on trade) always records
   if (!forced && last && (ts - last.ts) < 120000) return;
-  snapshots.push({ ts, value });
+  // Per-holding values for daily attribution
+  const h = portfolio.holdings.map(hh => ({ s: hh.symbol, v: holdingValue(hh) }));
+  snapshots.push({ ts, value, h });
   if (snapshots.length > 500) snapshots = snapshots.slice(-500);
   save('fos_snapshots', snapshots);
+}
+
+function maybeRecordDayStart() {
+  const today = new Date().toDateString();
+  if (_lastSnapshotDay !== today) {
+    _lastSnapshotDay = today;
+    recordSnapshot(true); // day-boundary snapshot
+  }
 }
 
 // ─── RENDER ENGINE ───
@@ -1720,14 +1748,13 @@ function renderPositions(a) {
 
 // ─── RENDER: EARNINGS CHART + HISTOGRAM ───
 function renderChart(a) {
-  if (!portfolio || portfolio.holdings.length === 0) return;
+  if (!portfolio || (portfolio.holdings.length === 0 && snapshots.length < 2)) return;
 
-  const snaps = snapshots.length >= 2 ? snapshots : null;
   const holdings = portfolio.holdings;
-
   const card = el('div', { className:'chart-card' });
 
-  // ── Portfolio value over time ──
+  // ── Continuous line chart ──
+  const snaps = snapshots.length >= 2 ? snapshots : null;
   card.appendChild(el('div', { className:'chart-label' }, 'Earnings over time'));
 
   if (snaps) {
@@ -1748,16 +1775,14 @@ function renderChart(a) {
     const colA = isUp ? 'rgba(92,191,138,0.12)' : 'rgba(212,106,106,0.12)';
     const baseY = (pad.t + ch).toFixed(1);
     const areaPts = xOf(minT) + ',' + baseY + ' ' + pts + ' ' + xOf(maxT) + ',' + baseY;
-
     const fmtAgo = ts => {
       const m = Math.round((Date.now() - ts) / 60000);
       if (m < 1) return 'now';
       if (m < 60) return m + 'm ago';
-      const h = Math.round(m / 60);
-      if (h < 24) return h + 'h ago';
-      return Math.round(h / 24) + 'd ago';
+      const hh = Math.round(m / 60);
+      if (hh < 24) return hh + 'h ago';
+      return Math.round(hh / 24) + 'd ago';
     };
-
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '100%');
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
@@ -1772,42 +1797,107 @@ function renderChart(a) {
       '<text x="' + pad.l + '" y="' + (H-22) + '" font-size="9" fill="rgba(128,128,128,0.8)" font-family="system-ui">' + fmtShort(minV) + '</text>';
     card.appendChild(el('div', { className:'chart-svg-wrap' }, svg));
   } else {
-    card.appendChild(el('div', { className:'chart-empty' }, 'Chart builds up as you trade — buy something and prices will be tracked here.'));
+    card.appendChild(el('div', { className:'chart-empty' }, 'Tracking starts now — the line will grow as prices update.'));
+  }
+
+  // ── Day-by-day breakdown ──
+  if (snapshots.length >= 2) {
+    // Group snapshots by calendar day
+    const dayMap = {};
+    for (const s of snapshots) {
+      const d = new Date(s.ts);
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      if (!dayMap[key]) dayMap[key] = [];
+      dayMap[key].push(s);
+    }
+    const days = Object.entries(dayMap).sort(([a],[b]) => a.localeCompare(b));
+
+    // Compute day numbers from first day
+    const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayPnls = days.map(([dateStr, daySnaps], i) => {
+      const first = daySnaps[0];
+      const last  = daySnaps[daySnaps.length - 1];
+      const pnl   = last.value - first.value;
+
+      // Find top mover from holdings embedded in snaps
+      let topMover = null;
+      if (first.h && last.h) {
+        let best = 0;
+        for (const lh of last.h) {
+          const fh = first.h.find(x => x.s === lh.s);
+          if (!fh) continue;
+          const delta = lh.v - fh.v;
+          if (Math.abs(delta) > Math.abs(best)) { best = delta; topMover = { sym: lh.s, pnl: delta }; }
+        }
+      }
+
+      const d = new Date(dateStr);
+      const label = 'Day ' + (i + 1) + ' · ' + DAY_NAMES[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+      return { label, pnl, topMover, closeValue: last.value };
+    });
+
+    card.appendChild(el('div', { className:'chart-label', style:'margin-top:1rem' }, 'Day by day'));
+
+    const maxAbsPnl = Math.max(...dayPnls.map(d => Math.abs(d.pnl)), 1);
+    dayPnls.forEach((day, i) => {
+      const isToday = i === dayPnls.length - 1;
+      const row = el('div', { className:'day-row' + (isToday ? ' day-today' : '') });
+
+      row.appendChild(el('div', { className:'day-label' }, day.label));
+
+      const barTrack = el('div', { className:'day-bar-track' });
+      const barPct = (Math.abs(day.pnl) / maxAbsPnl * 100).toFixed(0) + '%';
+      barTrack.appendChild(el('div', {
+        className: 'day-bar ' + (day.pnl >= 0 ? 'day-up' : 'day-dn'),
+        style: 'width:' + barPct,
+      }));
+      row.appendChild(barTrack);
+
+      const meta = el('div', { className:'day-meta' });
+      meta.appendChild(el('span', { className: 'day-pnl ' + (day.pnl >= 0 ? 'pnl-up' : 'pnl-dn') },
+        (day.pnl >= 0 ? '+' : '') + fmtShort(day.pnl)));
+      if (day.topMover && Math.abs(day.topMover.pnl) > 0.01) {
+        meta.appendChild(el('span', { className:'day-mover' },
+          ' · ' + day.topMover.sym + ' ' + (day.topMover.pnl >= 0 ? '+' : '') + fmtShort(day.topMover.pnl)));
+      }
+      row.appendChild(meta);
+      card.appendChild(row);
+    });
   }
 
   // ── Position histogram ──
-  card.appendChild(el('div', { className:'chart-label', style:'margin-top:0.8rem' }, 'What you hold'));
+  if (holdings.length > 0) {
+    card.appendChild(el('div', { className:'chart-label', style:'margin-top:1rem' }, 'What you hold'));
 
-  const totalVal = holdings.reduce((s, h) => s + holdingValue(h), 0) + portfolio.cash;
-  const allBars = [
-    ...holdings.map(h => ({ label: h.symbol, value: holdingValue(h), pnl: holdingPnL(h), isCash: false })),
-    { label: 'Cash', value: portfolio.cash, pnl: 0, isCash: true },
-  ].filter(b => b.value > 0);
+    const totalVal = holdings.reduce((s, hh) => s + holdingValue(hh), 0) + portfolio.cash;
+    const allBars = [
+      ...holdings.map(hh => ({ label: hh.symbol, value: holdingValue(hh), pnl: holdingPnL(hh), isCash: false })),
+      { label: 'Cash', value: portfolio.cash, pnl: 0, isCash: true },
+    ].filter(b => b.value > 0);
 
-  const histW = 460;
-  const barH = 18, gap = 5, labelW = 48, valW = 48;
-  const maxBarW = histW - labelW - valW - 10;
-  const maxVal = Math.max(...allBars.map(b => b.value));
-  const svgH = allBars.length * (barH + gap);
+    const histW = 460, barH = 18, gap = 5, labelW = 50;
+    const maxBarW = histW - labelW - 80;
+    const maxBVal = Math.max(...allBars.map(b => b.value));
+    const histSvgH = allBars.length * (barH + gap);
 
-  const hist = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  hist.setAttribute('width', '100%');
-  hist.setAttribute('viewBox', '0 0 ' + histW + ' ' + svgH);
-  hist.style.cssText = 'display:block;overflow:visible;';
-
-  let inner = '';
-  allBars.forEach((b, i) => {
-    const y = i * (barH + gap);
-    const bw = Math.max(3, (b.value / maxVal) * maxBarW);
-    const col = b.isCash ? 'rgba(128,128,128,0.35)' : b.pnl >= 0 ? 'rgba(92,191,138,0.7)' : 'rgba(212,106,106,0.7)';
-    const pct = ((b.value / totalVal) * 100).toFixed(0) + '%';
-    inner +=
-      '<text x="' + (labelW-4) + '" y="' + (y+barH-4) + '" font-size="9.5" fill="rgba(150,150,150,0.9)" font-family="system-ui" text-anchor="end">' + b.label + '</text>' +
-      '<rect x="' + labelW + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="' + barH + '" fill="' + col + '" rx="3"/>' +
-      '<text x="' + (labelW + bw + 5) + '" y="' + (y+barH-4) + '" font-size="9" fill="rgba(150,150,150,0.9)" font-family="system-ui">' + fmtShort(b.value) + ' · ' + pct + '</text>';
-  });
-  hist.innerHTML = inner;
-  card.appendChild(el('div', { className:'chart-svg-wrap' }, hist));
+    const hist = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    hist.setAttribute('width', '100%');
+    hist.setAttribute('viewBox', '0 0 ' + histW + ' ' + histSvgH);
+    hist.style.cssText = 'display:block;overflow:visible;';
+    let inner = '';
+    allBars.forEach((b, i) => {
+      const y = i * (barH + gap);
+      const bw = Math.max(3, (b.value / maxBVal) * maxBarW);
+      const col = b.isCash ? 'rgba(128,128,128,0.3)' : b.pnl >= 0 ? 'rgba(92,191,138,0.65)' : 'rgba(212,106,106,0.65)';
+      const pct = ((b.value / totalVal) * 100).toFixed(0) + '%';
+      inner +=
+        '<text x="' + (labelW-4) + '" y="' + (y+barH-4) + '" font-size="9.5" fill="rgba(140,140,140,0.9)" font-family="system-ui" text-anchor="end">' + b.label + '</text>' +
+        '<rect x="' + labelW + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="' + barH + '" fill="' + col + '" rx="3"/>' +
+        '<text x="' + (labelW+bw+5) + '" y="' + (y+barH-4) + '" font-size="9" fill="rgba(140,140,140,0.9)" font-family="system-ui">' + fmtShort(b.value) + ' · ' + pct + '</text>';
+    });
+    hist.innerHTML = inner;
+    card.appendChild(el('div', { className:'chart-svg-wrap' }, hist));
+  }
 
   a.appendChild(card);
 }
@@ -2176,6 +2266,7 @@ function startAutoRefresh() {
         await new Promise(r => setTimeout(r, 300));
       }
       lastTickAt = Date.now();
+      maybeRecordDayStart();
       recordSnapshot(false);
       if (portfolio.holdings.length > 0) render();
     }
