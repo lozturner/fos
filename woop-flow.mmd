@@ -1,0 +1,160 @@
+%%{ init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#cce3de', 'primaryTextColor': '#3a3a3a', 'primaryBorderColor': '#6b9080', 'lineColor': '#6b9080', 'secondaryColor': '#eae4e9', 'tertiaryColor': '#dda77b' } } }%%
+
+flowchart TD
+    START((User is stuck)) --> GEN_WELCOME
+
+    %% ─── GENERATOR FLOW ───
+    subgraph GENERATOR["woop-generate.html"]
+        direction TD
+        GEN_WELCOME["Welcome\nMorning/Afternoon, Loz.\nLet's build you a session."]
+        GEN_WELCOME -->|"Let's go"| GEN_INPUT
+        GEN_WELCOME -->|"Not right now"| GEN_EXIT["That's okay.\nThis will be here when you're ready."]
+
+        GEN_INPUT["What are you stuck on?\nTextarea for stuck-point"]
+        GEN_INPUT -->|"Build my session"| GEN_DECIDE{"API key\npresent?"}
+        GEN_INPUT -->|"Not right now"| GEN_WELCOME
+
+        GEN_DECIDE -->|Yes| GEN_API["Call Claude API\nHaiku fills narration fields\nwithin fixed JSON structure"]
+        GEN_DECIDE -->|No| GEN_TEMPLATE["Template mode\nPick random variant per phase\nInterpolate user input"]
+
+        GEN_API -->|Success| GEN_PREVIEW
+        GEN_API -->|Failure| GEN_TEMPLATE
+        GEN_TEMPLATE --> GEN_PREVIEW
+
+        GEN_PREVIEW["Preview & Edit\nShow all 6 phases\nNarration editable per phase"]
+        GEN_PREVIEW -->|"Save session"| GEN_SAVED
+        GEN_PREVIEW -->|"Download .woop.json"| GEN_DOWNLOAD["Downloads file"]
+        GEN_PREVIEW -->|"Regenerate"| GEN_DECIDE
+        GEN_PREVIEW -->|"Go back"| GEN_INPUT
+
+        GEN_SAVED["Session saved\nPut your headphones on\nwhenever you're ready."]
+        GEN_SAVED -->|"Open in player"| PLAYER_LINK
+        GEN_SAVED -->|"Download .woop.json"| GEN_DOWNLOAD
+        GEN_SAVED -->|"Copy JSON"| CLIPBOARD_JSON["JSON to clipboard"]
+        GEN_SAVED -->|"Create another"| GEN_WELCOME
+    end
+
+    %% ─── SESSION FILE CONTRACT ───
+    subgraph SESSION_FORMAT["Session File (.woop.json)"]
+        direction LR
+        SF1["version: 1"]
+        SF2["id, ts, input"]
+        SF3["phases[]: grounding → wish → outcome → obstacle → plan → close"]
+        SF4["Each phase: narration, pause_seconds, prompt"]
+        SF5["user_responses: {}"]
+    end
+
+    GEN_SAVED -.->|"localStorage\nwoop_sessions"| SESSION_FORMAT
+    GEN_DOWNLOAD -.->|"file download"| SESSION_FORMAT
+
+    %% ─── PLAYER FLOW ───
+    PLAYER_LINK --> PLAY_LOAD
+
+    subgraph PLAYER["woop-player.html"]
+        direction TD
+        PLAY_LOAD["Load Session\nPick from saved sessions\nor load .woop.json file"]
+        PLAY_LOAD --> PLAY_SETTINGS
+
+        PLAY_SETTINGS["Settings\nVoice selector\nSpeed: 0.7x / 0.85x / 1.0x / 1.15x\nTest voice button"]
+        PLAY_SETTINGS -->|"Begin session"| PHASE_LOOP
+        PLAY_SETTINGS -->|"Go back"| PLAY_LOAD
+
+        subgraph PHASE_LOOP["Phase Playback Loop"]
+            direction TD
+            PH_START["Start phase"] --> PH_SPEAK["TTS speaks narration\nText shown on screen"]
+            PH_SPEAK --> PH_CHECK{"Phase has\nprompt?"}
+
+            PH_CHECK -->|Yes| PH_PROMPT["Show prompt card\nOptional text input\nCountdown timer\nPen & paper primary"]
+            PH_CHECK -->|No| PH_BREATHE["Breathing animation\nCountdown timer"]
+
+            PH_PROMPT -->|"I'm ready" / timer ends| PH_NEXT
+            PH_BREATHE -->|Timer ends| PH_NEXT
+
+            PH_NEXT{"More\nphases?"} -->|Yes| PH_START
+            PH_NEXT -->|No| PLAY_DONE
+        end
+
+        PLAY_DONE["Completion\nYou did the work.\nWhatever happens next is a bonus."]
+        PLAY_DONE --> PLAY_SUMMARY["Session Summary\nWish / Outcome / Obstacle / Plan\nwith user responses"]
+
+        PLAY_SUMMARY -->|"Export transcript"| EXPORT_JSONL["Download .jsonl\nwoop-transcript-YYYY-MM-DD.jsonl"]
+        PLAY_SUMMARY -->|"Copy as markdown"| EXPORT_MD["Markdown to clipboard"]
+        PLAY_SUMMARY -->|"Replay session"| PLAY_SETTINGS
+        PLAY_SUMMARY -->|"Back to sessions"| PLAY_LOAD
+    end
+
+    %% ─── PHASE STRUCTURE ───
+    subgraph WOOP_FRAMEWORK["WOOP Framework (fixed structure)"]
+        direction LR
+        W1["1. Grounding\n30s breathwork\nNo prompt"]
+        W2["2. Wish\n45s pause\nName the task"]
+        W3["3. Outcome\n60s pause\nImagine completion"]
+        W4["4. Obstacle\n60s pause\nInternal barrier"]
+        W5["5. Plan\n60s pause\nIf-then intention"]
+        W6["6. Close\n10s pause\nGentle exit"]
+        W1 --> W2 --> W3 --> W4 --> W5 --> W6
+    end
+
+    PHASE_LOOP -.->|"follows"| WOOP_FRAMEWORK
+
+    %% ─── KEYBOARD SHORTCUTS ───
+    subgraph SHORTCUTS["Keyboard Shortcuts"]
+        direction LR
+        K1["Space = advance / I'm ready"]
+        K2["→ = skip phase"]
+        K3["Esc = stop session"]
+    end
+
+    PHASE_LOOP -.-> SHORTCUTS
+
+    %% ─── DATA PERSISTENCE ───
+    subgraph PERSISTENCE["Data Flow"]
+        direction LR
+        P1["woop_sessions\nin localStorage\nshared between both apps"]
+        P2[".woop.json files\nportable across devices"]
+        P3["JSONL transcript\nfor downstream system"]
+        P4["Markdown copy\nfor pasting into Claude"]
+    end
+
+    SESSION_FORMAT -.-> PERSISTENCE
+    EXPORT_JSONL -.-> PERSISTENCE
+    EXPORT_MD -.-> PERSISTENCE
+
+    %% ─── ANTI-SHAME LAYER ───
+    subgraph ANTI_SHAME["Anti-Shame Design"]
+        direction LR
+        AS1["Escape route on every screen"]
+        AS2["'Not right now' never judges"]
+        AS3["Pen & paper is primary\ndigital input is optional"]
+        AS4["Completion validates showing up"]
+        AS5["Partial sessions saved automatically"]
+    end
+
+    GEN_WELCOME -.->|"woven throughout"| ANTI_SHAME
+    PLAY_DONE -.->|"woven throughout"| ANTI_SHAME
+
+    %% ─── AI LAYER ───
+    subgraph AI_LAYER["AI Generation (the variable part)"]
+        direction LR
+        AI1["AI fills narration text ONLY"]
+        AI2["Fixed JSON schema never changes"]
+        AI3["3-4 offline variants per phase"]
+        AI4["Claude API for richer variation"]
+        AI5["User can edit any narration"]
+    end
+
+    GEN_DECIDE -.-> AI_LAYER
+
+    %% ─── STYLING ───
+    style GENERATOR fill:#cce3de,stroke:#6b9080
+    style PLAYER fill:#cce3de,stroke:#6b9080
+    style SESSION_FORMAT fill:#f9e2af,stroke:#dda77b
+    style WOOP_FRAMEWORK fill:#eae4e9,stroke:#9a8c98
+    style PHASE_LOOP fill:#e8f5e9,stroke:#6b9080
+    style PERSISTENCE fill:#f9e2af,stroke:#dda77b
+    style ANTI_SHAME fill:#f0e6d3,stroke:#dda77b
+    style AI_LAYER fill:#e8eaf6,stroke:#7986cb
+    style SHORTCUTS fill:#f7f5f0,stroke:#ccc
+    style PLAY_DONE fill:#dda77b,stroke:#c4956e
+    style GEN_EXIT fill:#eae4e9,stroke:#9a8c98
+    style GEN_SAVED fill:#dda77b,stroke:#c4956e

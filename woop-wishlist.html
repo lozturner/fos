@@ -588,7 +588,15 @@ const PRIO_ORDER = { must:0, want:1, nice:2 };
 
 // ── Hardcoded real product images (sourced live from Bing via Chrome) ────
 const BAKED_IMGS = {
-  'w-jago7':    'https://www.bassettsgroup.co.uk/images/jaecoo/JAECOO-7-Deluxe.jpg',
+  // ── Wishlist ────────────────────────────────────────────────────────────
+  'w-jago7':    'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg',
+  'w-shadow':   'https://upload.wikimedia.org/wikipedia/commons/0/06/Logo_Shadow.png',
+  'w-claude':   'https://upload.wikimedia.org/wikipedia/commons/0/06/Claude_AI_logo.png',
+  'w-wispr':    'https://upload.wikimedia.org/wikipedia/commons/d/d4/Wispr_Flow_Logo.png',
+  'w-spotify':  'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
+  'w-phenyl':   'https://www.powerbody.co.uk/media/catalog/product/i/m/image_2018-08-09_5b6c47ea08192.jpg',
+  'w-collagen': 'https://s3.images-iherb.com/now/now03086/v/0.jpg',
+  'w-biotin':   'https://s3.images-iherb.com/now/now00469/l/3.jpg',
   'w-p20pro':   'https://img.gkbcdn.com/s3/p/2018-04-09/huawei-p20-pro-6-1-inch-6gb-128gb-smartphone-aurora-color-1571981648200.jpg',
   'w-galtab4':  'https://images.samsung.com/is/image/samsung/latin_SM-T531NYKATPA_000241405_Front_black?$L1-Thumbnail$',
   'w-laptop':   'https://m.media-amazon.com/images/I/81fZmxBbQgL.jpg',
@@ -596,6 +604,7 @@ const BAKED_IMGS = {
   'w-gym':      'https://img.freepik.com/premium-photo/comprehensive-set-gym-weights-presented-highdefinition_982950-3692.jpg',
   'w-blood':    'https://www.labtestsguide.com/wp-content/uploads/2023/01/Blood-Collection-Tubes-1024x576.jpg',
   'w-desk':     'https://i5.walmartimages.com/asr/66c659d0-7a97-42cf-9fb8-a2133a3bd670.8ee19b122f7fe409ab062a802fad05dd.jpeg',
+  // ── YouTube pack ────────────────────────────────────────────────────────
   'yt-camera':  'http://askdirect.co.uk/cdn/shop/files/ZVE10M2KB-8.jpg?v=1720703933',
   'yt-lens':    'https://down-ph.img.susercontent.com/file/7e60bcdbb61c8e4a0d45f8c8241468ce',
   'yt-mic-wire':'https://edge.rode.com/images/products/variants/66/rode-wigo2_hero_image_final_2-rgb_1080x1080.png',
@@ -618,14 +627,21 @@ const YOUTUBE_PACK = [
 ];
 
 const WISH_DEFAULTS = [
-  { id:'w-jago7',   name:'Jago 7 Deluxe Hybrid',  cat:'car',     price:0,   url:'https://www.jago-car.com',                           prio:'want', note:'Hybrid SUV — check finance options',                       added: Date.now()-7, img: BAKED_IMGS['w-jago7']   },
-  { id:'w-p20pro',  name:'Huawei P20 Pro',         cat:'tech',    price:0,   url:'https://www.amazon.co.uk/s?k=huawei+p20+pro',        prio:'want', note:'',                                                       added: Date.now()-6, img: BAKED_IMGS['w-p20pro']  },
-  { id:'w-galtab4', name:'Samsung Galaxy Tab 4',   cat:'tech',    price:0,   url:'https://www.amazon.co.uk/s?k=samsung+galaxy+tab+4',  prio:'nice', note:'',                                                       added: Date.now()-5, img: BAKED_IMGS['w-galtab4'] },
-  { id:'w-laptop',  name:'Laptop for local LLM',   cat:'tech',    price:0,   url:'',                                                   prio:'must', note:'Finance — credit dependent. Local AI if cloud goes dark',  added: Date.now()-4, img: BAKED_IMGS['w-laptop']  },
-  { id:'w-carseat', name:'Car seat',               cat:'car',     price:0,   url:'https://www.amazon.co.uk/s?k=car+seat',              prio:'must', note:'For the new car',                                         added: Date.now()-3, img: BAKED_IMGS['w-carseat'] },
-  { id:'w-gym',     name:'Gym membership',         cat:'fitness', price:0,   url:'',                                                   prio:'want', note:'Swap existing to a closer gym',                           added: Date.now()-2, img: BAKED_IMGS['w-gym']     },
-  { id:'w-blood',   name:'Blood tests panel',      cat:'health',  price:149, url:'https://medichecks.com',                             prio:'must', note:'Before any more supplements — rationalise the stack',     added: Date.now()-1, img: BAKED_IMGS['w-blood']   },
-  { id:'w-desk',    name:'Standing desk',          cat:'home',    price:450, url:'https://www.amazon.co.uk/s?k=standing+desk',         prio:'nice', note:'',                                                       added: Date.now(),   img: BAKED_IMGS['w-desk']    },
+  { id:'w-jago7',    name:'Jago 7 Deluxe Hybrid',        cat:'car',     price:0,   url:'https://www.jago-car.com',                                    prio:'want', note:'Hybrid SUV — check finance options',                        added: Date.now()-14, img: BAKED_IMGS['w-jago7']    },
+  { id:'w-shadow',   name:'Shadow Cloud PC',             cat:'tech',    price:29.99,url:'https://shadow.tech',                                        prio:'must', note:'Unlimited cloud gaming & desktop — monthly sub',             added: Date.now()-13, img: BAKED_IMGS['w-shadow']   },
+  { id:'w-claude',   name:'Claude Cowork',               cat:'tech',    price:18,  url:'https://claude.ai',                                           prio:'must', note:'AI assistant — monthly Pro sub',                             added: Date.now()-12, img: BAKED_IMGS['w-claude']   },
+  { id:'w-wispr',    name:'Wispr Flow',                  cat:'tech',    price:0,   url:'https://wisprflow.ai',                                        prio:'want', note:'AI voice dictation — hands-free everywhere',                  added: Date.now()-11, img: BAKED_IMGS['w-wispr']    },
+  { id:'w-spotify',  name:'Spotify Premium',             cat:'health',  price:11.99,url:'https://www.spotify.com/uk/premium/',                        prio:'want', note:'Ad-free music & podcasts',                                   added: Date.now()-10, img: BAKED_IMGS['w-spotify']  },
+  { id:'w-phenyl',   name:'L-Phenylalanine 500mg',       cat:'health',  price:15,  url:'https://uk.iherb.com/c/phenylalanine',                        prio:'want', note:'Mood support — DL-Phenylalanine 500mg, 100 caps',             added: Date.now()-9,  img: BAKED_IMGS['w-phenyl']   },
+  { id:'w-collagen', name:'Collagen Peptides Powder',    cat:'health',  price:22,  url:'https://uk.iherb.com/pr/now-foods-collagen-peptides/62063',   prio:'want', note:'NOW Foods — bovine collagen, unflavoured',                    added: Date.now()-8,  img: BAKED_IMGS['w-collagen'] },
+  { id:'w-biotin',   name:'Biotin 1000mcg',              cat:'health',  price:8,   url:'https://uk.iherb.com/pr/now-foods-biotin-1-000-mcg/422',      prio:'want', note:'NOW Foods — hair, skin & nail support',                       added: Date.now()-7,  img: BAKED_IMGS['w-biotin']   },
+  { id:'w-p20pro',   name:'Huawei P20 Pro',              cat:'tech',    price:0,   url:'https://www.amazon.co.uk/s?k=huawei+p20+pro',                 prio:'want', note:'',                                                            added: Date.now()-6,  img: BAKED_IMGS['w-p20pro']   },
+  { id:'w-galtab4',  name:'Samsung Galaxy Tab 4',        cat:'tech',    price:0,   url:'https://www.amazon.co.uk/s?k=samsung+galaxy+tab+4',           prio:'nice', note:'',                                                            added: Date.now()-5,  img: BAKED_IMGS['w-galtab4']  },
+  { id:'w-laptop',   name:'Laptop for local LLM',        cat:'tech',    price:0,   url:'',                                                            prio:'must', note:'Finance — credit dependent. Local AI if cloud goes dark',      added: Date.now()-4,  img: BAKED_IMGS['w-laptop']   },
+  { id:'w-carseat',  name:'Car seat',                    cat:'car',     price:0,   url:'https://www.amazon.co.uk/s?k=car+seat',                       prio:'must', note:'For the new car',                                             added: Date.now()-3,  img: BAKED_IMGS['w-carseat']  },
+  { id:'w-gym',      name:'Gym membership',              cat:'fitness', price:0,   url:'',                                                            prio:'want', note:'Swap existing to a closer gym',                               added: Date.now()-2,  img: BAKED_IMGS['w-gym']      },
+  { id:'w-blood',    name:'Blood tests panel',           cat:'health',  price:149, url:'https://medichecks.com',                                      prio:'must', note:'Before any more supplements — rationalise the stack',          added: Date.now()-1,  img: BAKED_IMGS['w-blood']    },
+  { id:'w-desk',     name:'Standing desk',               cat:'home',    price:450, url:'https://www.amazon.co.uk/s?k=standing+desk',                  prio:'nice', note:'',                                                            added: Date.now(),    img: BAKED_IMGS['w-desk']     },
 ];
 
 const OWN_DEFAULTS = [
@@ -656,14 +672,24 @@ let editingId = null;
 let currentView = 'wish';
 let resolving = false;
 
-// ── Startup: patch any item missing a baked image ────────────────────────
+// ── Startup: patch images + merge any new defaults not yet in localStorage ─
 (function patchBakedImages() {
   let changed = false;
+
+  // 1. Patch existing items missing a baked image
   wishes.forEach(w => {
     if (!w.img && BAKED_IMGS[w.id]) { w.img = BAKED_IMGS[w.id]; changed = true; }
   });
+
+  // 2. Merge any WISH_DEFAULTS items the user doesn't have yet (by id)
+  const existingIds = new Set(wishes.map(w => w.id));
+  WISH_DEFAULTS.forEach(def => {
+    if (!existingIds.has(def.id)) { wishes.push(def); changed = true; }
+  });
+
   if (changed) saveWish(wishes);
-  // Also seed verified cache
+
+  // 3. Seed verified cache for all baked images
   Object.entries(BAKED_IMGS).forEach(([id, url]) => {
     if (!verified[id] || !verified[id].img_url) {
       verified[id] = { img_url: url, confidence: 95, verified: true, manual: true };

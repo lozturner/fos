@@ -1,0 +1,56 @@
+%%{ init: { 'theme': 'base', 'themeVariables': {
+  'primaryColor': '#cce3de', 'primaryTextColor': '#3a3a3a',
+  'primaryBorderColor': '#6b9080', 'lineColor': '#6b9080',
+  'secondaryColor': '#eae4e9', 'tertiaryColor': '#dda77b'
+} } }%%
+
+flowchart TD
+    START((Wiki)) --> MODE{"What do you need?"}
+
+    MODE -->|"New source"| INGEST
+    MODE -->|"Ask a question"| QUERY
+    MODE -->|"Health check"| LINT
+
+    subgraph INGEST["Ingest Workflow"]
+        I1["Read raw/ source"] --> I2["Create summary page"]
+        I2 --> I3{"New concepts?"}
+        I3 -->|"Yes"| I4["Create/update concept pages"]
+        I3 -->|"No"| I5
+        I4 --> I5{"New entities?"}
+        I5 -->|"Yes"| I6["Create/update entity pages"]
+        I5 -->|"No"| I7["Add cross-links"]
+        I6 --> I7
+        I7 --> I8["Update index.md"]
+        I8 --> I9["Append to log.md"]
+        I9 --> I10["Generate flashcards"]
+    end
+
+    subgraph QUERY["Query Workflow"]
+        Q1["Read index.md"] --> Q2["Find relevant pages"]
+        Q2 --> Q3["Read & synthesise answer"]
+        Q3 --> Q4{"Worth preserving?"}
+        Q4 -->|"Yes"| Q5["Create synthesis page"]
+        Q5 --> Q6["Update index + log"]
+        Q4 -->|"No"| Q7["Return answer"]
+    end
+
+    subgraph LINT["Lint Workflow"]
+        L1["Scan all wiki pages"] --> L2{"Orphaned pages?"}
+        L2 -->|"Yes"| L3["Add missing links"]
+        L2 -->|"No"| L4
+        L3 --> L4{"Contradictions?"}
+        L4 -->|"Yes"| L5["Flag for review"]
+        L4 -->|"No"| L6
+        L5 --> L6{"Missing sections?"}
+        L6 -->|"Yes"| L7["Fill required sections"]
+        L6 -->|"No"| L8
+        L7 --> L8{"Low confidence upgradeable?"}
+        L8 -->|"Yes"| L9["Flag for more sources"]
+        L8 -->|"No"| L10["Report clean"]
+        L9 --> L11["Append to log.md"]
+        L10 --> L11
+    end
+
+    INGEST --> DONE((Done))
+    QUERY --> DONE
+    LINT --> DONE

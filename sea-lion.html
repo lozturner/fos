@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Lion</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --blue: #79c0ff;
+  --green: #7ee787;
+  --teal: #76e3ea;
+  --red: #ff7b72;
+  --yellow: #e3b341;
+  --purple: #d2a8ff;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+body {
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Views ─── */
+.view { display: none; flex-direction: column; min-height: 100vh; }
+.view.active { display: flex; }
+
+/* ─── Welcome ─── */
+.welcome-view {
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  gap: 1.5rem;
+  text-align: center;
+}
+.welcome-view .logo { font-size: 4rem; margin-bottom: 0.5rem; }
+.welcome-view h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; }
+.welcome-view .tagline { color: var(--text-muted); font-size: 0.95rem; max-width: 380px; }
+.seed-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+.seed-card .seed-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+.seed-card .seed-topic { font-size: 1.1rem; font-weight: 500; color: var(--blue); }
+.seed-card .seed-angles { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem; }
+.custom-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.custom-input:focus { border-color: var(--blue); }
+.custom-input::placeholder { color: var(--text-muted); }
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--blue); color: var(--bg); }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+.btn-danger { background: var(--red); color: var(--bg); }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+.btn-row { display: flex; gap: 0.75rem; width: 100%; max-width: 400px; }
+.btn-row .btn { flex: 1; }
+
+.session-count { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+/* ─── Chat View ─── */
+.chat-view { padding: 0; }
+.chat-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.chat-header .topic { flex: 1; font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-header .tap-out { font-size: 0.75rem; }
+
+/* Pressure bar */
+.pressure-bar {
+  height: 3px;
+  background: var(--border);
+  position: relative;
+}
+.pressure-fill {
+  height: 100%;
+  transition: width 0.5s ease, background 0.5s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Messages */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.msg {
+  max-width: 85%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  position: relative;
+  animation: msgIn 0.2s ease;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg-user {
+  align-self: flex-end;
+  background: #1f3a5f;
+  color: var(--text);
+  border-bottom-right-radius: 4px;
+}
+.msg-bot {
+  align-self: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.provider-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Typing indicator */
+.typing {
+  align-self: flex-start;
+  display: flex;
+  gap: 4px;
+  padding: 0.65rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+}
+.typing span {
+  width: 7px;
+  height: 7px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Chat input */
+.chat-input-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+.chat-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: var(--font);
+  outline: none;
+  resize: none;
+  max-height: 120px;
+  min-height: 40px;
+  line-height: 1.4;
+}
+.chat-input:focus { border-color: var(--blue); }
+.chat-input::placeholder { color: var(--text-muted); }
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.send-btn:hover { opacity: 0.85; }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ─── Settings View ─── */
+.settings-view {
+  padding: 1.5rem;
+  gap: 1.25rem;
+}
+.settings-view h2 { font-size: 1.3rem; font-weight: 600; }
+.setting-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.setting-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+.setting-group .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+.key-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.key-input {
+  flex: 1;
+  padding: 0.5rem 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: var(--mono);
+  outline: none;
+}
+.key-input:focus { border-color: var(--blue); }
+.test-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.test-ok { background: rgba(126,231,135,0.15); color: var(--green); }
+.test-fail { background: rgba(255,123,114,0.15); color: var(--red); }
+.test-pending { background: rgba(139,148,158,0.15); color: var(--text-muted); }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+.toggle-row span { font-size: 0.9rem; }
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--green); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--text);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* ─── Summary View ─── */
+.summary-view {
+  padding: 1.5rem;
+  gap: 1rem;
+  justify-content: center;
+}
+.summary-view h2 { text-align: center; font-size: 1.4rem; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.stat-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  text-align: center;
+}
+.stat-card .stat-value { font-size: 1.6rem; font-weight: 700; }
+.stat-card .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.persona-breakdown {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+}
+.persona-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+}
+.persona-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.persona-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+
+/* ─── Utilities ─── */
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="v-welcome" class="view welcome-view active"></div>
+  <div id="v-chat" class="view chat-view"></div>
+  <div id="v-settings" class="view settings-view"></div>
+  <div id="v-summary" class="view summary-view"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   SECTION 1: Constants & Config
+   ═══════════════════════════════════════════ */
+
+const PROVIDER_COLORS = {
+  groq: '#7ee787',
+  cerebras: '#76e3ea',
+  openrouter: '#d2a8ff',
+  claude: '#79c0ff',
+  practice: '#8b949e',
+};
+
+const PROVIDERS = {
+  groq: {
+    name: 'Groq',
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama-3.3-70b-versatile',
+    tier: 'fast',
+    maxTokens: 300,
+    headers: (key) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }),
+    formatBody: (msgs, sys, max) => ({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'system', content: sys }, ...msgs], max_tokens: max, temperature: 0.9 }),
+    parse: (d) => d.choices[0].message.content,
+  },
+  cerebras: {
+    name: 'Cerebras',
+    endpoint: 'https://api.cerebras.ai/v1/chat/completions',
+    model: 'llama-4-scout-17b-16e-instruct',
+    tier: 'fast',
+    maxTokens: 300,
+    headers: (key) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }),
+    formatBody: (msgs, sys, max) => ({ model: 'llama-4-scout-17b-16e-instruct', messages: [{ role: 'system', content: sys }, ...msgs], max_tokens: max, temperature: 0.9 }),
+    parse: (d) => d.choices[0].message.content,
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'openrouter/auto',
+    tier: 'fallback',
+    maxTokens: 400,
+    headers: (key) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': location.href }),
+    formatBody: (msgs, sys, max) => ({ model: 'openrouter/auto', messages: [{ role: 'system', content: sys }, ...msgs], max_tokens: max, temperature: 0.9 }),
+    parse: (d) => d.choices[0].message.content,
+  },
+  claude: {
+    name: 'Claude',
+    endpoint: 'https://api.anthropic.com/v1/messages',
+    model: 'claude-haiku-4-5-20251001',
+    tier: 'deep',
+    maxTokens: 600,
+    headers: (key) => ({ 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }),
+    formatBody: (msgs, sys, max) => ({ model: 'claude-haiku-4-5-20251001', max_tokens: max, system: sys, messages: msgs }),
+    parse: (d) => d.content[0].text,
+  },
+};
+
+/* ═══════════════════════════════════════════
+   SECTION 2: Personas
+   ═══════════════════════════════════════════ */
+
+const PERSONAS = {
+  inquisitor: {
+    name: 'The Polite Inquisitor',
+    icon: '\u{1F3A9}',
+    color: 'var(--blue)',
+    system: `You phrase everything as genuine curiosity. "I just want to understand...", "Could you help me see...", "I'm sure you have a reason, but could you explain...". Never hostile, always pressing. Politely relentless.`,
+  },
+  pedant: {
+    name: 'The Pedant',
+    icon: '\u{1F50D}',
+    color: 'var(--yellow)',
+    system: `Fixate on the exact words the user chose. Question word choice, point out vague language, demand precise definitions. "When you say 'good', what metric are you using?" "You said 'most people' — which people specifically?" Also critique grammar, punctuation, and sentence structure if imperfect.`,
+  },
+  advocate: {
+    name: "Devil's Advocate",
+    icon: '\u{1F608}',
+    color: 'var(--red)',
+    system: `Take the opposing position on whatever the user says. If they're for it, you're against it. If they hedge, push them to commit. "But have you considered the opposite?", "Someone could argue that..." Be provocative but fair.`,
+  },
+  statistician: {
+    name: 'The Statistician',
+    icon: '\u{1F4CA}',
+    color: 'var(--green)',
+    system: `Demand evidence and data for every claim. "Do you have data for that?", "What's your sample size?", "Correlation or causation?", "That's an anecdote, not evidence." Be skeptical of anything unquantified.`,
+  },
+  philosopher: {
+    name: 'The Philosopher',
+    icon: '\u{1F914}',
+    color: 'var(--teal)',
+    system: `Question the fundamental meaning behind everything. "But what do you REALLY mean by that?", "Is that what you believe, or what you've been told to believe?", "How would you define that without circular reasoning?" Go deep.`,
+  },
+  attorney: {
+    name: 'The Attorney',
+    icon: '\u2696\uFE0F',
+    color: 'var(--yellow)',
+    system: `Cross-examine the user. Reference their earlier statements. Catch contradictions. "Earlier you said X, but now you're saying Y. Which is it?", "Let the record show...", "I'd like to direct your attention to your previous statement." Build a case against their consistency.`,
+  },
+};
+
+/* ═══════════════════════════════════════════
+   SECTION 3: Seed Topics
+   ═══════════════════════════════════════════ */
+
+const SEEDS = [
+  { topic: 'The best programming language is...', angles: ['subjectivity', 'metrics', 'context-dependence'] },
+  { topic: 'AI will replace most jobs within 10 years', angles: ['timeline', 'which-jobs', 'historical-precedent'] },
+  { topic: 'Pineapple belongs on pizza', angles: ['cultural-relativism', 'taste-subjectivity', 'tradition'] },
+  { topic: 'The purpose of education is to get a job', angles: ['economic-vs-philosophical', 'who-decides', 'outcomes'] },
+  { topic: 'Remote work is better than office work', angles: ['productivity-data', 'social-needs', 'privilege'] },
+  { topic: 'Free will is an illusion', angles: ['determinism', 'neuroscience', 'moral-implications'] },
+  { topic: 'Social media does more harm than good', angles: ['mental-health', 'democracy', 'connection'] },
+  { topic: 'Money can buy happiness', angles: ['threshold-effects', 'definition-of-happiness', 'research'] },
+  { topic: 'Crypto is the future of money', angles: ['energy', 'stability', 'accessibility'] },
+  { topic: 'Tabs are better than spaces', angles: ['accessibility', 'consistency', 'tooling'] },
+  { topic: 'University is a waste of time and money', angles: ['ROI', 'networking', 'alternatives'] },
+  { topic: 'Everyone should learn to code', angles: ['literacy-analogy', 'opportunity-cost', 'who-benefits'] },
+  { topic: 'The death penalty is justified', angles: ['deterrence', 'morality', 'wrongful-convictions'] },
+  { topic: 'Privacy is dead and we should accept it', angles: ['surveillance', 'convenience', 'power'] },
+  { topic: 'Hustle culture is toxic', angles: ['productivity', 'privilege', 'personal-choice'] },
+  { topic: 'Children should not use smartphones', angles: ['development', 'safety', 'education'] },
+  { topic: 'Veganism is the only ethical diet', angles: ['environment', 'health', 'culture'] },
+  { topic: 'Democracy is the best system of government', angles: ['efficiency', 'representation', 'alternatives'] },
+  { topic: 'Age is just a number', angles: ['biology', 'wisdom', 'context'] },
+  { topic: 'Failure is the best teacher', angles: ['survivorship-bias', 'cost-of-failure', 'alternatives'] },
+  { topic: 'The customer is always right', angles: ['business-reality', 'employee-welfare', 'origin'] },
+  { topic: 'Talent is overrated — it is all hard work', angles: ['genetics', 'practice', 'privilege'] },
+  { topic: 'Lying is sometimes the right thing to do', angles: ['ethics', 'consequences', 'trust'] },
+  { topic: 'History repeats itself', angles: ['patterns', 'context-differences', 'determinism'] },
+  { topic: 'You can not be friends with your ex', angles: ['psychology', 'boundaries', 'exceptions'] },
+  { topic: 'Time management is a myth', angles: ['energy-management', 'systems', 'privilege'] },
+  { topic: 'All opinions are equally valid', angles: ['expertise', 'relativism', 'democracy'] },
+  { topic: 'Humans are fundamentally selfish', angles: ['evolution', 'altruism', 'culture'] },
+  { topic: 'Art created by AI is not real art', angles: ['definition', 'intent', 'value'] },
+  { topic: 'You should follow your passion', angles: ['privilege', 'practicality', 'survivorship-bias'] },
+];
+
+/* ═══════════════════════════════════════════
+   SECTION 4: Practice Mode Canned Responses
+   ═══════════════════════════════════════════ */
+
+const CANNED = {
+  short: [
+    "That's it? That's your whole argument?",
+    "Interesting. But have you considered you might be completely wrong?",
+    "Can you elaborate? That felt... thin.",
+    "One sentence? You expect me to just accept that?",
+    "So if I'm hearing you right — and correct me if I'm wrong — you have no actual evidence for this?",
+  ],
+  deflection: [
+    "Nice try changing the subject. Let's go back to what you said before.",
+    "I notice you didn't actually answer my question. Shall I repeat it?",
+    "That's a different topic entirely. Are you avoiding the question?",
+  ],
+  agreement: [
+    "You agree with me? That's suspicious. Why exactly?",
+    "Hold on — don't just agree. Push back. What's your ACTUAL position?",
+    "Agreeing too quickly suggests you haven't thought it through. Have you?",
+  ],
+  vague: [
+    "What do you mean by 'it depends'? Depends on WHAT, specifically?",
+    "You said 'kind of'. Is it, or isn't it? Pick a lane.",
+    "'Sort of' is doing a lot of heavy lifting in that sentence. Unpack it.",
+  ],
+  long: [
+    "That was a lot of words. Can you summarize your actual point in one sentence?",
+    "I count at least three different claims in there. Let's take them one at a time — starting with the weakest.",
+    "Impressive volume. But quantity isn't quality. What's the core argument?",
+  ],
+  opening: [
+    "Interesting topic. But before we begin — can you define your terms precisely? Because I suspect we mean different things.",
+    "Bold choice. So tell me — what makes you qualified to have an opinion on this?",
+    "Alright. I'll start simple: what's the strongest argument AGAINST your position? And don't dodge it.",
+  ],
+};
+
+/* ═══════════════════════════════════════════
+   SECTION 5: State
+   ═══════════════════════════════════════════ */
+
+const S = {
+  view: 'WELCOME',
+  messages: [],
+  activePersona: 'inquisitor',
+  sessionId: null,
+  sessionStartedAt: null,
+  seedTopic: null,
+  typing: false,
+  lastUserMessageAt: 0,
+  lastBotMessageAt: 0,
+  personaChangeCounter: 0,
+  personaChangesAt: 3 + Math.floor(Math.random() * 3),
+  providerHealth: {},
+  practiceMode: false,
+  score: {
+    userResponseTimes: [],
+    userWordCounts: [],
+    contradictions: 0,
+    deflections: 0,
+    questionsAsked: 0,
+    personaUsage: {},
+  },
+};
+
+function initProviderHealth() {
+  for (const k of Object.keys(PROVIDERS)) {
+    S.providerHealth[k] = { available: true, avgLatencyMs: 0, failures: 0, lastUsed: 0 };
+  }
+}
+initProviderHealth();
+
+/* ═══════════════════════════════════════════
+   SECTION 6: Storage Helpers
+   ═══════════════════════════════════════════ */
+
+function loadKeys() {
+  try { return JSON.parse(localStorage.getItem('sealion_keys') || '{}'); } catch { return {}; }
+}
+function saveKeys(keys) { localStorage.setItem('sealion_keys', JSON.stringify(keys)); }
+
+function loadSessions() {
+  try { return JSON.parse(localStorage.getItem('sealion_sessions') || '[]'); } catch { return []; }
+}
+function saveSessions(s) { localStorage.setItem('sealion_sessions', JSON.stringify(s)); }
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem('sealion_settings') || '{}'); } catch { return {}; }
+}
+function saveSettings(s) { localStorage.setItem('sealion_settings', JSON.stringify(s)); }
+
+function loadLogs() {
+  try { return JSON.parse(localStorage.getItem('sealion_logs') || '[]'); } catch { return []; }
+}
+
+function logExchange(userMsg, botMsg, persona, provider, latencyMs) {
+  const entry = {
+    session_id: S.sessionId,
+    ts: new Date().toISOString(),
+    user: userMsg,
+    assistant: botMsg,
+    persona,
+    provider,
+    latency_ms: latencyMs,
+    pressure_level: getPressureLevel(),
+    conversation_depth: S.messages.length,
+    user_response_time_ms: S.score.userResponseTimes[S.score.userResponseTimes.length - 1] || null,
+  };
+  const logs = loadLogs();
+  logs.push(entry);
+  localStorage.setItem('sealion_logs', JSON.stringify(logs));
+}
+
+function exportJSONL() {
+  const logs = loadLogs();
+  if (!logs.length) return;
+  const jsonl = logs.map(l => JSON.stringify(l)).join('\n');
+  const blob = new Blob([jsonl], { type: 'application/jsonl' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `sealion-training-${Date.now()}.jsonl`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 7: Provider Calls & Routing
+   ═══════════════════════════════════════════ */
+
+async function callProvider(providerKey, messages, system, maxTokens) {
+  const provider = PROVIDERS[providerKey];
+  const key = loadKeys()[providerKey];
+  if (!key) throw new Error('No key');
+
+  const t0 = performance.now();
+  const res = await fetch(provider.endpoint, {
+    method: 'POST',
+    headers: provider.headers(key),
+    body: JSON.stringify(provider.formatBody(messages, system, maxTokens)),
+  });
+  const latency = performance.now() - t0;
+
+  if (!res.ok) {
+    updateHealth(providerKey, latency, true);
+    throw new Error(`${provider.name}: ${res.status}`);
+  }
+
+  const data = await res.json();
+  updateHealth(providerKey, latency, false);
+  return { text: provider.parse(data), provider: providerKey, latencyMs: Math.round(latency) };
+}
+
+function updateHealth(key, latencyMs, failed) {
+  const h = S.providerHealth[key];
+  if (failed) {
+    h.failures++;
+    if (h.failures >= 3) {
+      h.available = false;
+      setTimeout(() => { h.failures = 0; h.available = true; }, 60000);
+    }
+  } else {
+    h.failures = 0;
+    h.available = true;
+    h.avgLatencyMs = h.avgLatencyMs ? h.avgLatencyMs * 0.7 + latencyMs * 0.3 : latencyMs;
+  }
+  h.lastUsed = Date.now();
+}
+
+function scoreComplexity(text) {
+  let s = 0;
+  const words = text.trim().split(/\s+/).length;
+  s += Math.min(words / 5, 4);
+  if (/because|therefore|however|although/i.test(text)) s += 2;
+  if (/but|yet|though/i.test(text)) s += 1;
+  if ((text.match(/,/g) || []).length > 2) s += 1;
+  if (text.length > 200) s += 2;
+  return s;
+}
+
+function pickProvider(userMessage, depth, timeDelta) {
+  const keys = loadKeys();
+  const available = Object.keys(PROVIDERS).filter(k =>
+    keys[k] && S.providerHealth[k].available && S.providerHealth[k].failures < 3
+  );
+  if (!available.length) return null;
+
+  const complexity = scoreComplexity(userMessage);
+  const wantsFast = complexity < 4 || depth < 4 || timeDelta < 2000;
+  const wantsDeep = complexity > 7 || depth > 12;
+
+  const fastOrder = ['cerebras', 'groq', 'openrouter', 'claude'];
+  const deepOrder = ['claude', 'openrouter', 'groq', 'cerebras'];
+  const balancedOrder = ['groq', 'cerebras', 'claude', 'openrouter'];
+
+  const order = wantsDeep ? deepOrder : wantsFast ? fastOrder : balancedOrder;
+
+  for (const k of order) {
+    if (available.includes(k)) {
+      const h = S.providerHealth[k];
+      if (h.avgLatencyMs > 3000 && order.indexOf(k) < order.length - 1) continue;
+      return k;
+    }
+  }
+  return available[0];
+}
+
+function pickFallback(failedKey) {
+  const keys = loadKeys();
+  const order = ['groq', 'cerebras', 'openrouter', 'claude'];
+  return order.find(k => k !== failedKey && keys[k] && S.providerHealth[k].available) || null;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function callWithFallback(messages) {
+  const lastUser = messages.filter(m => m.role === 'user').pop();
+  const depth = messages.length;
+  const timeDelta = Date.now() - (S.lastUserMessageAt || 0);
+  const chosen = pickProvider(lastUser?.content || '', depth, timeDelta);
+
+  if (!chosen || S.practiceMode) return practiceResponse(messages);
+
+  const system = buildSystemPrompt();
+  const formatted = messages.map(m => ({ role: m.role, content: m.content }));
+  const maxTok = PROVIDERS[chosen].maxTokens;
+
+  try {
+    const result = await Promise.race([
+      callProvider(chosen, formatted, system, maxTok),
+      sleep(4000).then(() => { throw new Error('timeout'); }),
+    ]);
+    return result;
+  } catch {
+    const fb = pickFallback(chosen);
+    if (fb) {
+      try { return await callProvider(fb, formatted, system, PROVIDERS[fb].maxTokens); } catch {}
+    }
+    return practiceResponse(messages);
+  }
+}
+
+function practiceResponse(messages) {
+  const lastUser = (messages.filter(m => m.role === 'user').pop() || {}).content || '';
+  const words = lastUser.trim().split(/\s+/).length;
+  let pool;
+  if (messages.length <= 2) pool = CANNED.opening;
+  else if (words < 4) pool = CANNED.short;
+  else if (words > 40) pool = CANNED.long;
+  else if (/yeah|yes|agree|right|true|exactly/i.test(lastUser)) pool = CANNED.agreement;
+  else if (/depends|maybe|sort of|kind of|sometimes/i.test(lastUser)) pool = CANNED.vague;
+  else pool = CANNED.short;
+  const text = pool[Math.floor(Math.random() * pool.length)];
+  return { text, provider: 'practice', latencyMs: 0 };
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 8: Persona Selection & Prompts
+   ═══════════════════════════════════════════ */
+
+function detectContradiction(messages) {
+  const userMsgs = messages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
+  if (userMsgs.length < 3) return false;
+  const latest = userMsgs[userMsgs.length - 1];
+  const earlier = userMsgs.slice(0, -1);
+  const negators = ['not', "don't", "isn't", 'never', 'disagree', 'wrong', 'opposite', "can't", "won't", 'no'];
+  for (const prev of earlier) {
+    const prevWords = new Set(prev.split(/\s+/).filter(w => w.length > 4));
+    const latestWords = latest.split(/\s+/);
+    const overlap = latestWords.filter(w => prevWords.has(w) && w.length > 4);
+    const hasNegator = latestWords.some(w => negators.includes(w));
+    if (overlap.length >= 2 && hasNegator) return true;
+  }
+  return false;
+}
+
+function pickPersona(messages) {
+  S.personaChangeCounter++;
+  if (S.personaChangeCounter < S.personaChangesAt && S.activePersona) return S.activePersona;
+
+  S.personaChangeCounter = 0;
+  S.personaChangesAt = 3 + Math.floor(Math.random() * 3);
+
+  const lastUser = (messages.filter(m => m.role === 'user').pop() || {}).content || '';
+  const text = lastUser.toLowerCase();
+
+  if (detectContradiction(messages)) return 'attorney';
+  if (/most people|everyone|always|never|obviously|clearly/i.test(text)) return 'pedant';
+  if (/i think|i believe|i feel|should|must|ought/i.test(text)) return 'philosopher';
+  if (/\d+|percent|data|studies|research|evidence/i.test(text)) return 'statistician';
+  if (/definitely|of course|no doubt|without question/i.test(text)) return 'advocate';
+
+  const keys = Object.keys(PERSONAS).filter(k => k !== S.activePersona);
+  return keys[Math.floor(Math.random() * keys.length)];
+}
+
+function buildSystemPrompt() {
+  const p = PERSONAS[S.activePersona];
+  const depth = S.messages.length;
+  const conversationHistory = S.messages.filter(m => m.role === 'user').map(m => m.content).join(' | ');
+
+  return `You are Sea Lion, a relentless sealioning chatbot. Your job is to question EVERYTHING the user says. Never agree. Never let a statement pass unchallenged. Always end your response with at least one question. Sometimes ask 2-3 rapid-fire questions.
+
+Current style: ${p.name}
+${p.system}
+
+${S.seedTopic ? `Topic: ${S.seedTopic}` : 'Open discussion.'}
+
+Conversation depth: ${depth} messages.
+${depth > 20 ? 'Reference their earlier statements to catch contradictions. Be ruthless.' : ''}
+${depth > 10 ? 'Increase pressure. Shorter, sharper questions. Don\'t let them breathe.' : ''}
+
+Rules:
+- Keep responses under 3 sentences for quick jabs, up to 5 for deeper probes.
+- ALWAYS end with a question. Make it pointed.
+- Never reveal your persona name or that you switch styles.
+- If the user deflects, call it out and pull them back.
+- If the user gives a short answer, demand they elaborate.
+- If the user gives a long answer, demand they summarize.
+- Challenge their grammar, word choice, and logic where relevant.
+- Be relentless but never cruel. Firm intellectual pressure, not personal attacks.`;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 9: Scoring
+   ═══════════════════════════════════════════ */
+
+function updateScore(userMessage) {
+  const now = Date.now();
+  if (S.lastBotMessageAt) {
+    S.score.userResponseTimes.push(now - S.lastBotMessageAt);
+  }
+  S.score.userWordCounts.push(userMessage.trim().split(/\s+/).length);
+
+  if (S.messages.length > 4) {
+    const lastBot = S.messages.filter(m => m.role === 'assistant').pop();
+    if (lastBot && lastBot.content.includes('?')) {
+      const question = lastBot.content.split('?')[0].split('.').pop().trim().toLowerCase();
+      const relevant = userMessage.toLowerCase();
+      const qWords = new Set(question.split(/\s+/).filter(w => w.length > 3));
+      const overlap = relevant.split(/\s+/).filter(w => qWords.has(w)).length;
+      if (overlap < 1 && userMessage.trim().split(/\s+/).length > 3) {
+        S.score.deflections++;
+      }
+    }
+  }
+
+  if (detectContradiction(S.messages)) S.score.contradictions++;
+}
+
+function getPressureLevel() {
+  const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+  const avgRT = avg(S.score.userResponseTimes) || 5000;
+  const avgWords = avg(S.score.userWordCounts) || 10;
+
+  let p = 50;
+  p += avgRT > 10000 ? -15 : avgRT < 3000 ? 15 : 0;
+  p += avgWords < 5 ? -10 : avgWords > 30 ? 10 : 0;
+  p += S.score.contradictions * 8;
+  p += S.score.deflections * 5;
+  return Math.max(0, Math.min(100, Math.round(p)));
+}
+
+function pressureColor(level) {
+  if (level < 35) return 'var(--green)';
+  if (level < 65) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 10: DOM Helpers
+   ═══════════════════════════════════════════ */
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') e.className = v;
+      else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children) {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  }
+  return e;
+}
+
+function go(view) {
+  S.view = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  render();
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 11: View Renderers
+   ═══════════════════════════════════════════ */
+
+function render() {
+  const views = { WELCOME: renderWelcome, CHAT: renderChat, SETTINGS: renderSettings, SUMMARY: renderSummary };
+  const viewId = { WELCOME: 'v-welcome', CHAT: 'v-chat', SETTINGS: 'v-settings', SUMMARY: 'v-summary' };
+  const container = document.getElementById(viewId[S.view]);
+  container.innerHTML = '';
+  views[S.view](container);
+  container.classList.add('active');
+}
+
+function renderWelcome(root) {
+  const seed = SEEDS[Math.floor(Math.random() * SEEDS.length)];
+  const sessions = loadSessions();
+
+  root.appendChild(el('div', { className: 'logo' }, '\u{1F9AD}'));
+  root.appendChild(el('h1', null, 'Sea Lion'));
+  root.appendChild(el('p', { className: 'tagline' }, 'Relentless questioning. Invisible AI routing. Zero mercy. Can you hold your ground?'));
+
+  const seedCard = el('div', { className: 'seed-card', style: { cursor: 'pointer' }, onClick: () => startSession(seed.topic) });
+  seedCard.appendChild(el('div', { className: 'seed-label' }, 'Random Topic'));
+  seedCard.appendChild(el('div', { className: 'seed-topic' }, seed.topic));
+  seedCard.appendChild(el('div', { className: 'seed-angles' }, seed.angles.join(' \u00B7 ')));
+  root.appendChild(seedCard);
+
+  const customInput = el('input', { className: 'custom-input', type: 'text', placeholder: 'Or type your own topic...' });
+  customInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && customInput.value.trim()) startSession(customInput.value.trim());
+  });
+  root.appendChild(customInput);
+
+  const btnRow = el('div', { className: 'btn-row' });
+  btnRow.appendChild(el('button', { className: 'btn btn-primary', onClick: () => {
+    if (customInput.value.trim()) startSession(customInput.value.trim());
+    else startSession(seed.topic);
+  }}, '\u{1F9AD} Start'));
+  btnRow.appendChild(el('button', { className: 'btn btn-ghost', onClick: () => go('SETTINGS') }, '\u2699\uFE0F Settings'));
+  root.appendChild(btnRow);
+
+  if (sessions.length) {
+    root.appendChild(el('div', { className: 'session-count' }, `${sessions.length} session${sessions.length > 1 ? 's' : ''} completed`));
+  }
+
+  const keys = loadKeys();
+  const hasKeys = Object.values(keys).some(k => k);
+  if (!hasKeys) {
+    const warn = el('div', { style: { fontSize: '0.8rem', color: 'var(--yellow)', marginTop: '0.5rem', textAlign: 'center' } },
+      'No API keys configured. Practice mode will be used. Add keys in Settings.');
+    root.appendChild(warn);
+  }
+}
+
+let messagesContainer = null;
+
+function renderChat(root) {
+  const header = el('div', { className: 'chat-header' });
+  const personaInfo = PERSONAS[S.activePersona];
+  header.appendChild(el('span', { style: { fontSize: '1.1rem' } }, personaInfo.icon));
+  header.appendChild(el('span', { className: 'topic' }, S.seedTopic || 'Open discussion'));
+  header.appendChild(el('button', { className: 'btn btn-ghost btn-sm tap-out', onClick: endSession }, 'Tap out'));
+  root.appendChild(header);
+
+  const pressure = getPressureLevel();
+  const pBar = el('div', { className: 'pressure-bar' });
+  const pFill = el('div', { className: 'pressure-fill', style: { width: pressure + '%', background: pressureColor(pressure) } });
+  pBar.appendChild(pFill);
+  root.appendChild(pBar);
+
+  messagesContainer = el('div', { className: 'messages' });
+  for (const msg of S.messages) {
+    messagesContainer.appendChild(renderMessage(msg));
+  }
+  if (S.typing) {
+    const typingEl = el('div', { className: 'typing' },
+      el('span'), el('span'), el('span')
+    );
+    messagesContainer.appendChild(typingEl);
+  }
+  root.appendChild(messagesContainer);
+
+  const inputBar = el('div', { className: 'chat-input-bar' });
+  const textarea = el('textarea', {
+    className: 'chat-input',
+    placeholder: 'Say something...',
+    rows: '1',
+  });
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  });
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(textarea.value);
+      textarea.value = '';
+      textarea.style.height = 'auto';
+    }
+  });
+
+  const sendBtn = el('button', { className: 'send-btn', onClick: () => {
+    sendMessage(textarea.value);
+    textarea.value = '';
+    textarea.style.height = 'auto';
+  }}, '\u25B6');
+
+  inputBar.appendChild(textarea);
+  inputBar.appendChild(sendBtn);
+  root.appendChild(inputBar);
+
+  requestAnimationFrame(() => {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    textarea.focus();
+  });
+}
+
+function renderMessage(msg) {
+  const isUser = msg.role === 'user';
+  const bubble = el('div', { className: isUser ? 'msg msg-user' : 'msg msg-bot' }, msg.content);
+
+  if (!isUser && msg.provider) {
+    const meta = el('div', { className: 'msg-meta' });
+    meta.appendChild(el('span', { className: 'provider-dot', style: { background: PROVIDER_COLORS[msg.provider] || '#8b949e' } }));
+    if (msg.latencyMs) meta.appendChild(el('span', null, msg.latencyMs + 'ms'));
+    if (msg.persona) {
+      const pObj = PERSONAS[msg.persona];
+      if (pObj) meta.appendChild(el('span', null, pObj.icon));
+    }
+    bubble.appendChild(meta);
+  }
+  return bubble;
+}
+
+function renderSettings(root) {
+  root.appendChild(el('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } },
+    el('h2', null, 'Settings'),
+    el('button', { className: 'btn btn-ghost btn-sm', onClick: () => go('WELCOME') }, '\u2190 Back')
+  ));
+
+  const keys = loadKeys();
+  const providerEntries = [
+    { key: 'groq', label: 'Groq', hint: 'Free at console.groq.com \u2014 Llama 3.3 70B, 1k req/day' },
+    { key: 'cerebras', label: 'Cerebras', hint: 'Free at cloud.cerebras.ai \u2014 fastest inference, 1M tok/day' },
+    { key: 'openrouter', label: 'OpenRouter', hint: 'Free at openrouter.ai \u2014 auto-routes 29 free models' },
+    { key: 'claude', label: 'Claude (Anthropic)', hint: 'api.anthropic.com \u2014 smartest, used for deep probes' },
+  ];
+
+  for (const prov of providerEntries) {
+    const group = el('div', { className: 'setting-group' });
+    group.appendChild(el('label', null, prov.label));
+
+    const keyRow = el('div', { className: 'key-row' });
+    const input = el('input', {
+      className: 'key-input',
+      type: 'password',
+      placeholder: 'API key...',
+      value: keys[prov.key] || '',
+    });
+
+    const badge = el('span', { className: 'test-badge test-pending' }, keys[prov.key] ? 'saved' : 'none');
+
+    const testBtn = el('button', { className: 'btn btn-ghost btn-sm', onClick: async () => {
+      const val = input.value.trim();
+      if (!val) { badge.className = 'test-badge test-fail'; badge.textContent = 'empty'; return; }
+      badge.className = 'test-badge test-pending'; badge.textContent = 'testing...';
+      keys[prov.key] = val;
+      saveKeys(keys);
+      try {
+        await callProvider(prov.key, [{ role: 'user', content: 'Say "OK" in one word.' }], 'Respond with just OK.', 10);
+        badge.className = 'test-badge test-ok'; badge.textContent = 'connected';
+      } catch (e) {
+        badge.className = 'test-badge test-fail'; badge.textContent = 'failed';
+      }
+    }}, 'Test');
+
+    input.addEventListener('change', () => {
+      keys[prov.key] = input.value.trim();
+      saveKeys(keys);
+      badge.className = 'test-badge test-pending'; badge.textContent = 'saved';
+    });
+
+    keyRow.appendChild(input);
+    keyRow.appendChild(testBtn);
+    keyRow.appendChild(badge);
+    group.appendChild(keyRow);
+    group.appendChild(el('div', { className: 'hint' }, prov.hint));
+    root.appendChild(group);
+  }
+
+  const practiceGroup = el('div', { className: 'setting-group' });
+  const settings = loadSettings();
+  S.practiceMode = !!settings.practiceMode;
+  const toggleRow = el('div', { className: 'toggle-row' });
+  toggleRow.appendChild(el('span', null, 'Practice mode (offline, canned responses)'));
+  const toggle = el('button', { className: `toggle ${S.practiceMode ? 'on' : ''}`, onClick: () => {
+    S.practiceMode = !S.practiceMode;
+    settings.practiceMode = S.practiceMode;
+    saveSettings(settings);
+    toggle.classList.toggle('on');
+  }});
+  toggleRow.appendChild(toggle);
+  practiceGroup.appendChild(toggleRow);
+  root.appendChild(practiceGroup);
+
+  const dataGroup = el('div', { className: 'setting-group' });
+  dataGroup.appendChild(el('label', null, 'Training Data'));
+  const logs = loadLogs();
+  dataGroup.appendChild(el('div', { style: { fontSize: '0.85rem', marginBottom: '0.5rem' } }, `${logs.length} exchanges logged`));
+  const dataBtns = el('div', { style: { display: 'flex', gap: '0.5rem' } });
+  dataBtns.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: exportJSONL }, 'Export JSONL'));
+  dataBtns.appendChild(el('button', { className: 'btn btn-danger btn-sm', onClick: () => {
+    if (confirm('Clear all training data?')) {
+      localStorage.removeItem('sealion_logs');
+      go('SETTINGS');
+    }
+  }}, 'Clear'));
+  dataGroup.appendChild(dataBtns);
+  root.appendChild(dataGroup);
+}
+
+function renderSummary(root) {
+  const duration = S.sessionStartedAt ? Math.round((Date.now() - S.sessionStartedAt) / 1000) : 0;
+  const mins = Math.floor(duration / 60);
+  const secs = duration % 60;
+  const avg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+  const pressure = getPressureLevel();
+  const msgCount = S.messages.filter(m => m.role === 'user').length;
+
+  root.appendChild(el('h2', null, '\u{1F9AD} Session Over'));
+
+  const grid = el('div', { className: 'stat-grid' });
+  const stats = [
+    { val: `${mins}:${String(secs).padStart(2, '0')}`, label: 'Duration' },
+    { val: msgCount, label: 'Your Messages' },
+    { val: (avg(S.score.userResponseTimes) / 1000).toFixed(1) + 's', label: 'Avg Response' },
+    { val: avg(S.score.userWordCounts), label: 'Avg Words' },
+    { val: S.score.contradictions, label: 'Contradictions' },
+    { val: S.score.deflections, label: 'Deflections' },
+    { val: pressure, label: 'Pressure Level' },
+    { val: S.messages.filter(m => m.role === 'assistant').length, label: 'Bot Messages' },
+  ];
+  for (const s of stats) {
+    const card = el('div', { className: 'stat-card' });
+    card.appendChild(el('div', { className: 'stat-value', style: { color: s.label === 'Pressure Level' ? pressureColor(pressure) : 'var(--text)' } }, String(s.val)));
+    card.appendChild(el('div', { className: 'stat-label' }, s.label));
+    grid.appendChild(card);
+  }
+  root.appendChild(grid);
+
+  const personaSection = el('div', { className: 'persona-breakdown' });
+  personaSection.appendChild(el('div', { style: { fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' } }, 'Persona Usage'));
+  const totalBotMsgs = S.messages.filter(m => m.role === 'assistant').length || 1;
+  for (const [key, persona] of Object.entries(PERSONAS)) {
+    const count = S.score.personaUsage[key] || 0;
+    const pct = Math.round((count / totalBotMsgs) * 100);
+    const row = el('div', { className: 'persona-row' });
+    row.appendChild(el('span', null, persona.icon));
+    row.appendChild(el('span', { style: { width: '120px', fontSize: '0.8rem' } }, persona.name));
+    const bar = el('div', { className: 'persona-bar' });
+    bar.appendChild(el('div', { className: 'persona-bar-fill', style: { width: pct + '%', background: persona.color } }));
+    row.appendChild(bar);
+    row.appendChild(el('span', { style: { fontSize: '0.75rem', color: 'var(--text-muted)', width: '30px', textAlign: 'right' } }, count.toString()));
+    personaSection.appendChild(row);
+  }
+  root.appendChild(personaSection);
+
+  const provSection = el('div', { className: 'persona-breakdown' });
+  provSection.appendChild(el('div', { style: { fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' } }, 'Provider Performance'));
+  for (const [key, prov] of Object.entries(PROVIDERS)) {
+    const h = S.providerHealth[key];
+    if (!h.lastUsed) continue;
+    const row = el('div', { className: 'persona-row' });
+    row.appendChild(el('span', { className: 'provider-dot', style: { background: PROVIDER_COLORS[key] } }));
+    row.appendChild(el('span', { style: { fontSize: '0.85rem', flex: 1 } }, prov.name));
+    row.appendChild(el('span', { style: { fontSize: '0.75rem', color: 'var(--text-muted)' } }, Math.round(h.avgLatencyMs) + 'ms avg'));
+    provSection.appendChild(row);
+  }
+  root.appendChild(provSection);
+
+  const btnRow = el('div', { className: 'btn-row', style: { marginTop: '0.5rem' } });
+  btnRow.appendChild(el('button', { className: 'btn btn-primary', onClick: () => go('WELCOME') }, '\u{1F9AD} Go Again'));
+  btnRow.appendChild(el('button', { className: 'btn btn-ghost', onClick: exportJSONL }, 'Export Data'));
+  root.appendChild(btnRow);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 12: Session Logic
+   ═══════════════════════════════════════════ */
+
+function startSession(topic) {
+  S.sessionId = 'sl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  S.sessionStartedAt = Date.now();
+  S.seedTopic = topic;
+  S.messages = [];
+  S.activePersona = 'inquisitor';
+  S.typing = false;
+  S.lastUserMessageAt = 0;
+  S.lastBotMessageAt = 0;
+  S.personaChangeCounter = 0;
+  S.personaChangesAt = 3 + Math.floor(Math.random() * 3);
+  S.score = { userResponseTimes: [], userWordCounts: [], contradictions: 0, deflections: 0, questionsAsked: 0, personaUsage: {} };
+  initProviderHealth();
+
+  const settings = loadSettings();
+  S.practiceMode = !!settings.practiceMode;
+  if (!Object.values(loadKeys()).some(k => k)) S.practiceMode = true;
+
+  go('CHAT');
+  sendOpening();
+}
+
+async function sendOpening() {
+  S.typing = true;
+  renderChatUpdate();
+
+  const openingPrompt = [{ role: 'user', content: `The topic is: "${S.seedTopic}". Give me your opening challenge. Be provocative but fair.` }];
+  const result = await callWithFallback(openingPrompt);
+
+  S.typing = false;
+  const msg = { role: 'assistant', content: result.text, provider: result.provider, latencyMs: result.latencyMs, persona: S.activePersona, ts: Date.now() };
+  S.messages.push(msg);
+  S.lastBotMessageAt = Date.now();
+  S.score.personaUsage[S.activePersona] = (S.score.personaUsage[S.activePersona] || 0) + 1;
+  renderChatUpdate();
+}
+
+async function sendMessage(text) {
+  text = text.trim();
+  if (!text || S.typing) return;
+
+  S.lastUserMessageAt = Date.now();
+  updateScore(text);
+
+  S.messages.push({ role: 'user', content: text, ts: Date.now() });
+
+  S.activePersona = pickPersona(S.messages);
+
+  S.typing = true;
+  renderChatUpdate();
+
+  const result = await callWithFallback(S.messages);
+
+  S.typing = false;
+  const msg = { role: 'assistant', content: result.text, provider: result.provider, latencyMs: result.latencyMs, persona: S.activePersona, ts: Date.now() };
+  S.messages.push(msg);
+  S.lastBotMessageAt = Date.now();
+  S.score.personaUsage[S.activePersona] = (S.score.personaUsage[S.activePersona] || 0) + 1;
+
+  logExchange(text, result.text, S.activePersona, result.provider, result.latencyMs);
+  renderChatUpdate();
+
+  maybeRapidFire();
+}
+
+async function maybeRapidFire() {
+  const depth = S.messages.filter(m => m.role === 'user').length;
+  const chance = depth > 12 ? 0.35 : depth > 6 ? 0.2 : 0.05;
+  if (Math.random() > chance) return;
+
+  await sleep(800 + Math.random() * 700);
+  if (S.view !== 'CHAT') return;
+
+  S.typing = true;
+  renderChatUpdate();
+
+  const followUpMessages = [...S.messages, { role: 'user', content: '(continue questioning, add a sharp follow-up to your last point)' }];
+  const result = await callWithFallback(followUpMessages);
+
+  S.typing = false;
+  const msg = { role: 'assistant', content: result.text, provider: result.provider, latencyMs: result.latencyMs, persona: S.activePersona, ts: Date.now() };
+  S.messages.push(msg);
+  S.lastBotMessageAt = Date.now();
+  S.score.personaUsage[S.activePersona] = (S.score.personaUsage[S.activePersona] || 0) + 1;
+  renderChatUpdate();
+}
+
+function renderChatUpdate() {
+  if (S.view !== 'CHAT') return;
+  const root = document.getElementById('v-chat');
+  root.innerHTML = '';
+  renderChat(root);
+}
+
+function endSession() {
+  const summary = {
+    id: S.sessionId,
+    topic: S.seedTopic,
+    duration: Date.now() - S.sessionStartedAt,
+    messageCount: S.messages.length,
+    pressure: getPressureLevel(),
+    contradictions: S.score.contradictions,
+    deflections: S.score.deflections,
+    ts: new Date().toISOString(),
+  };
+  const sessions = loadSessions();
+  sessions.push(summary);
+  saveSessions(sessions);
+  go('SUMMARY');
+}
+
+/* ═══════════════════════════════════════════
+   SECTION 13: Init
+   ═══════════════════════════════════════════ */
+
+const settings = loadSettings();
+S.practiceMode = !!settings.practiceMode;
+render();
+
+</script>
+</body>
+</html>

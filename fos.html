@@ -577,6 +577,142 @@ body {
 }
 .realcalc-hint { font-size: 0.65rem; color: var(--muted); line-height: 1.4; margin-top: 0.3rem; }
 
+/* ─── LIVE PROOF PANEL ─── */
+.proof-panel {
+  background: var(--gentle); border-radius: 8px; padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem; font-size: 0.72rem;
+}
+.proof-row {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  padding: 0.25rem 0; border-bottom: 1px solid var(--accent);
+}
+.proof-row:last-of-type { border-bottom: none; }
+.proof-sym { font-weight: 800; min-width: 3.5rem; }
+.proof-val { font-weight: 700; }
+.proof-src { color: var(--muted); font-size: 0.65rem; }
+.proof-ts  { color: var(--muted); font-size: 0.65rem; }
+.proof-empty { color: var(--muted); font-style: italic; padding: 0.4rem 0; }
+.proof-note {
+  margin-top: 0.5rem; font-size: 0.65rem; color: var(--muted); line-height: 1.4;
+  border-top: 1px solid var(--accent); padding-top: 0.4rem;
+}
+
+/* ─── MODE ROW (Free / Pro AI / Ultra + one-at-a-time) ─── */
+.mode-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap;
+}
+.tier-wrap { display: flex; align-items: center; gap: 0.4rem; }
+.ultra-switch {
+  width: 36px; height: 20px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--accent); position: relative; transition: background 0.2s;
+  flex-shrink: 0;
+}
+.ultra-switch::after {
+  content:''; position:absolute; top:2px; left:2px; width:16px; height:16px;
+  border-radius:50%; background:#fff; transition: left 0.2s;
+}
+.ultra-switch.on { background: #c4956e; }
+.ultra-switch.on::after { left: 18px; }
+.ultra-note {
+  font-size: 0.68rem; color: var(--warm); padding: 0.3rem 0;
+  animation: revealIn 0.2s ease;
+}
+.oat-wrap { display: flex; align-items: center; gap: 0.4rem; }
+.oat-label { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+.oat-toggle {
+  width: 32px; height: 18px; border-radius: 9px; border: none; cursor: pointer;
+  background: var(--accent); position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.oat-toggle::after {
+  content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
+  border-radius:50%; background:#fff; transition: left 0.2s;
+}
+.oat-toggle.on { background: var(--primary); }
+.oat-toggle.on::after { left: 16px; }
+
+/* ─── SLIP ROWS — MOBILE FIRST ─── */
+.slip-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.2rem 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--accent);
+  animation: revealIn 0.2s ease;
+}
+.slip-sym {
+  grid-row: 1; grid-column: 1;
+  font-weight: 800; font-size: 0.88rem; align-self: center;
+}
+.slip-name {
+  grid-row: 1; grid-column: 2;
+  font-size: 0.72rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center;
+}
+.slip-remove {
+  grid-row: 1; grid-column: 3;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 1rem; padding: 0.1rem 0.3rem; line-height: 1;
+  transition: color 0.1s; align-self: center;
+}
+.slip-remove:hover { color: var(--loss); }
+.slip-row-bottom {
+  grid-row: 2; grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.slip-price { font-size: 0.78rem; font-weight: 600; }
+.slip-qty-ctrl {
+  display: flex; align-items: center; border: 1px solid var(--accent);
+  border-radius: 6px; overflow: hidden; flex-shrink: 0;
+}
+.slip-qty-btn {
+  background: var(--accent); border: none; padding: 0.28rem 0.45rem; font-size: 0.85rem;
+  cursor: pointer; color: var(--text); font-family: var(--font);
+  transition: background 0.1s; line-height: 1;
+}
+.slip-qty-btn:hover { background: var(--primary); color: var(--btn-text); }
+.slip-qty-val {
+  padding: 0.2rem 0.35rem; font-size: 0.78rem; font-weight: 600; min-width: 1.6rem;
+  text-align: center; background: var(--card); color: var(--text);
+}
+.slip-cost { font-size: 0.75rem; font-weight: 600; margin-left: auto; }
+
+/* ─── REVIEW PANEL ─── */
+.review-trigger {
+  width: 100%; display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card); border: 1.5px solid var(--accent); border-radius: var(--radius);
+  padding: 0.7rem 1rem; cursor: pointer; text-align: left; font-family: var(--font);
+  margin-bottom: 0.5rem; transition: border-color 0.15s;
+}
+.review-trigger:hover { border-color: var(--primary); }
+.review-trigger-icon { font-size: 1.2rem; flex-shrink: 0; }
+.review-trigger-text { flex: 1; font-size: 0.8rem; color: var(--muted); line-height: 1.3; }
+.review-trigger-text strong { color: var(--text); }
+.review-arrow { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; display: inline-block; }
+.review-arrow.open { transform: rotate(90deg); }
+.review-panel {
+  background: var(--card); border-radius: var(--radius); border: 1.5px solid var(--primary);
+  padding: 0.9rem 1rem; margin-bottom: 0.8rem; animation: revealIn 0.15s ease;
+}
+.review-tx-row {
+  display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.35rem 0;
+  border-bottom: 1px solid var(--accent); font-size: 0.78rem;
+}
+.review-tx-row:last-child { border-bottom: none; }
+.review-tx-left { display: flex; flex-direction: column; min-width: 5rem; }
+.review-tx-sym { font-weight: 800; font-size: 0.85rem; }
+.review-tx-detail { font-size: 0.68rem; color: var(--muted); }
+.review-tx-date { flex: 1; font-size: 0.68rem; color: var(--muted); }
+.review-tx-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.review-tx-cost { font-weight: 700; font-size: 0.78rem; }
+
+/* ─── ULTRA MODE LOGO ─── */
+.pos-tile-logo {
+  width: 28px; height: 28px; border-radius: 6px; object-fit: contain;
+  margin-bottom: 0.3rem; background: var(--accent);
+}
+
 /* ─── HISTORY ─── */
 .history-toggle {
   width: 100%;
@@ -844,7 +980,14 @@ let S = {
   realCalcOpen: false,  // "what if real?" panel
   realCalcBroker: 'T212', // selected broker for fee calc
   liveRefreshMs: 0,     // 0 = off, otherwise ms between price refreshes
+  luckyOneAtATime: false,  // replace slip vs stack
+  ultraMode: false,        // logos + extra data
+  reviewOpen: false,       // portfolio review panel
+  proofOpen: false,        // live data proof panel
 };
+
+let lastRawFetch = {};
+let logoCache = {};
 
 // ─── UK BROKER DATA ───
 const BROKERS = [
@@ -925,6 +1068,8 @@ function loadState() {
       S.historyOpen = !!saved.historyOpen;
       if (saved.realCalcBroker) S.realCalcBroker = saved.realCalcBroker;
       if (saved.liveRefreshMs) S.liveRefreshMs = saved.liveRefreshMs;
+      if (saved.luckyOneAtATime != null) S.luckyOneAtATime = saved.luckyOneAtATime;
+      if (saved.ultraMode != null) S.ultraMode = saved.ultraMode;
     }
   } catch(e) {}
 }
@@ -936,7 +1081,7 @@ function saveAll() {
   save('fos_tx', transactions);
   save('fos_prices', priceCache);
   save('fos_snapshots', snapshots.slice(-500));
-  save('fos_ui', { proMode: S.proMode, historyOpen: S.historyOpen, realCalcBroker: S.realCalcBroker, liveRefreshMs: S.liveRefreshMs });
+  save('fos_ui', { proMode: S.proMode, historyOpen: S.historyOpen, realCalcBroker: S.realCalcBroker, liveRefreshMs: S.liveRefreshMs, luckyOneAtATime: S.luckyOneAtATime, ultraMode: S.ultraMode });
 }
 
 // ─── SNAPSHOT SYSTEM ───
@@ -988,6 +1133,7 @@ function render() {
   renderSlip(a);
   renderPositions(a);
   renderChart(a);
+  renderReview(a);
   renderRealCalc(a);
   renderMakeItReal(a);
   renderHistory(a);
@@ -1085,6 +1231,17 @@ async function fetchPrice(symbol) {
       const prev = closes.length >= 2 ? closes[closes.length - 2] : closes[0];
       const entry = { price: current, change: current - prev, changePct: ((current - prev) / prev) * 100, prices: closes.slice(-30), fetchedAt: Date.now() };
       priceCache[symbol] = entry;
+      lastRawFetch[symbol] = {
+        fetchedAt: Date.now(),
+        source: 'Yahoo Finance',
+        url: 'query1.finance.yahoo.com/v8/finance/chart/' + symbol,
+        priceBefore: cached ? cached.price : null,
+        priceNow: current,
+        currency: result.meta.currency || 'USD',
+        exchangeName: result.meta.exchangeName || '',
+        marketState: result.meta.marketState || '',
+        regularMarketTime: result.meta.regularMarketTime || null,
+      };
       save('fos_prices', priceCache);
       dataMode = 'live';
       return entry;
@@ -1096,6 +1253,17 @@ async function fetchPrice(symbol) {
     return { price: cur, change: cur - prev, changePct: ((cur - prev) / prev) * 100, prices: p, fetchedAt: Date.now() };
   }
   return null;
+}
+
+async function fetchLogo(symbol) {
+  if (logoCache[symbol] !== undefined) return logoCache[symbol];
+  const clean = symbol.replace('.L','').replace('^','');
+  const url = 'https://assets.parqet.com/logos/symbol/' + clean + '?format=jpg';
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    logoCache[symbol] = r.ok ? url : null;
+  } catch(e) { logoCache[symbol] = null; }
+  return logoCache[symbol];
 }
 
 async function refreshAll() {
@@ -1238,9 +1406,14 @@ function slipHas(symbol) { return S.slip.some(s => s.symbol === symbol); }
 
 function addToSlip(pick) {
   if (!pick || !pick.symbol) return;
-  if (slipHas(pick.symbol)) return; // already on slip
-  S.slip = [...S.slip, { ...pick, qty: 1 }];
-  // Kick off a price fetch if we don't have a price yet
+  if (S.luckyOneAtATime) {
+    // Replace entire slip with just this pick
+    S.slip = [{ ...pick, qty: 1 }];
+  } else {
+    if (slipHas(pick.symbol)) return;
+    // Prepend so newest is at TOP
+    S.slip = [{ ...pick, qty: 1 }, ...S.slip];
+  }
   if (!getPrice(pick.symbol)) fetchPrice(pick.symbol).then(() => render()).catch(() => {});
   render();
 }
@@ -1408,14 +1581,48 @@ function renderHeader(a) {
   cash.appendChild(el('span', null, 'Invested: ', el('strong', null, fmtShort(invested))));
   hdr.appendChild(cash);
 
-  // Live indicator — no mention of demo/real, prices are just prices
+  // Live indicator — clickable, shows proof panel
   if (lastTickAt) {
-    const live = el('div', { className:'live-indicator' });
-    live.appendChild(el('span', { className:'live-dot' }));
+    const live = el('div', { className:'live-indicator', style:'cursor:pointer', onClick() { S.proofOpen = !S.proofOpen; render(); } });
+    const dot = el('span', { className:'live-dot' });
+    live.appendChild(dot);
     const age = Math.round((Date.now() - lastTickAt) / 1000);
     const ageStr = age < 5 ? 'just now' : age + 's ago';
-    live.appendChild(document.createTextNode('Prices updated ' + ageStr));
+    // Count how many symbols have real (non-demo) data
+    const liveSym = Object.keys(lastRawFetch).length;
+    const liveText = liveSym > 0
+      ? '● LIVE from Yahoo Finance · ' + ageStr + (liveSym > 0 ? ' · ' + liveSym + ' real price' + (liveSym !== 1 ? 's' : '') : '')
+      : 'Prices simulated · ' + ageStr;
+    live.appendChild(document.createTextNode(liveText));
+    live.appendChild(el('span', { style:'margin-left:0.4rem;font-size:0.65rem;color:var(--primary)' }, S.proofOpen ? '▲ hide proof' : '▼ show proof'));
     hdr.appendChild(live);
+
+    if (S.proofOpen) {
+      const proofPanel = el('div', { className:'proof-panel' });
+      const syms = Object.keys(lastRawFetch);
+      if (syms.length === 0) {
+        proofPanel.appendChild(el('div', { className:'proof-empty' }, 'No live fetches yet. Prices are being simulated. Click ↻ to force a real fetch.'));
+      } else {
+        syms.slice(0, 4).forEach(sym => {
+          const d = lastRawFetch[sym];
+          const row = el('div', { className:'proof-row' });
+          row.appendChild(el('span', { className:'proof-sym' }, sym));
+          row.appendChild(el('span', { className:'proof-val' }, '£' + (d.priceNow || 0).toFixed(2)));
+          if (d.priceBefore) {
+            const delta = d.priceNow - d.priceBefore;
+            row.appendChild(el('span', { className: delta >= 0 ? 'pnl-up' : 'pnl-dn', style:'font-size:0.65rem' }, (delta >= 0 ? '▲' : '▼') + Math.abs(delta).toFixed(3)));
+          }
+          row.appendChild(el('span', { className:'proof-src' }, d.exchangeName + ' · ' + d.marketState));
+          const ts = d.regularMarketTime ? new Date(d.regularMarketTime * 1000).toLocaleTimeString('en-GB') : '';
+          if (ts) row.appendChild(el('span', { className:'proof-ts' }, 'mkt ' + ts));
+          proofPanel.appendChild(row);
+        });
+        proofPanel.appendChild(el('div', { className:'proof-note' },
+          '⚠ These are last-known closing prices from Yahoo Finance via corsproxy.io. In real trading: spread (the gap between buy/sell price), slippage (your order moves the price), T+2 settlement (2 days before cash is yours), and market hours all affect what you actually get. This app shows mid-price — real execution is slightly worse.'
+        ));
+      }
+      hdr.appendChild(proofPanel);
+    }
   }
 
   a.appendChild(hdr);
@@ -1433,21 +1640,57 @@ function renderLucky(a) {
     b.appendChild(el('span', { className:'lucky-sub' }, sub));
     return b;
   };
-  btns.appendChild(makeBtn('🎲', "I'm Feeling Lucky", 'Random from 50 picks', luckyPreset));
-  btns.appendChild(makeBtn('🌐', "I'm Feeling Lucky", 'Trending right now', luckyWeb));
-  btns.appendChild(makeBtn('🐛', 'Underdog Pick', 'Less obvious, more interesting', luckyUnderdog, 'underdog-btn'));
+  btns.appendChild(makeBtn('🎲', 'Feeling Lucky', 'Random · 50 picks', luckyPreset));
+  btns.appendChild(makeBtn('🌐', 'Trending', 'Whats moving now', luckyWeb));
+  btns.appendChild(makeBtn('🐛', 'Underdog', 'Less obvious picks', luckyUnderdog, 'underdog-btn'));
   if (S.proMode) btns.appendChild(makeBtn('🧠', 'AI Pick', 'Claude suggests', luckyAI, 'ai-btn'));
   sec.appendChild(btns);
 
-  const proRow = el('div', { className:'pro-row' });
-  proRow.appendChild(el('span', { className: !S.proMode ? 'active-label' : '' }, 'Free'));
-  proRow.appendChild(el('button', {
+  // Mode row: Free | Pro AI | Ultra  +  one-at-a-time toggle
+  const modeRow = el('div', { className:'mode-row' });
+
+  // Left: tier switcher
+  const tierWrap = el('div', { className:'tier-wrap' });
+  tierWrap.appendChild(el('span', { className: (!S.proMode && !S.ultraMode) ? 'active-label' : '' }, 'Free'));
+
+  const proSwitch = el('button', {
     className:'pro-switch' + (S.proMode ? ' on' : ''),
     'aria-label':'Toggle Pro AI mode',
-    onClick() { S.proMode = !S.proMode; saveAll(); render(); },
-  }));
-  proRow.appendChild(el('span', { className: S.proMode ? 'active-label' : '' }, 'Pro (AI)'));
-  sec.appendChild(proRow);
+    onClick() { S.proMode = !S.proMode; if (S.proMode) S.ultraMode = false; saveAll(); render(); },
+  });
+  tierWrap.appendChild(proSwitch);
+  tierWrap.appendChild(el('span', { className: S.proMode ? 'active-label' : '' }, 'Pro AI'));
+
+  const ultraSwitch = el('button', {
+    className:'ultra-switch' + (S.ultraMode ? ' on' : ''),
+    title: 'Ultra mode: real logos and extra data',
+    onClick() {
+      S.ultraMode = !S.ultraMode;
+      if (S.ultraMode) {
+        S.proMode = false;
+        // Kick off logo fetches for all held positions
+        if (portfolio) portfolio.holdings.forEach(h => fetchLogo(h.symbol).then(() => render()));
+      }
+      saveAll(); render();
+    },
+  });
+  tierWrap.appendChild(ultraSwitch);
+  const ultraLbl = el('span', { className: S.ultraMode ? 'active-label' : '' }, 'Ultra');
+  tierWrap.appendChild(ultraLbl);
+  modeRow.appendChild(tierWrap);
+
+  // Right: one-at-a-time toggle
+  const oatWrap = el('div', { className:'oat-wrap' });
+  const oatBtn = el('button', {
+    className: 'oat-toggle' + (S.luckyOneAtATime ? ' on' : ''),
+    title: S.luckyOneAtATime ? 'One at a time — click to stack picks' : 'Stacking picks — click for one at a time',
+    onClick() { S.luckyOneAtATime = !S.luckyOneAtATime; saveAll(); render(); },
+  });
+  oatWrap.appendChild(oatBtn);
+  oatWrap.appendChild(el('span', { className:'oat-label' }, S.luckyOneAtATime ? 'One at a time' : 'Stack picks'));
+  modeRow.appendChild(oatWrap);
+
+  sec.appendChild(modeRow);
 
   if (S.proMode) {
     const pr = el('div', { className:'ai-prompt-row' });
@@ -1457,6 +1700,11 @@ function renderLucky(a) {
     pr.appendChild(inp);
     sec.appendChild(pr);
   }
+
+  if (S.ultraMode) {
+    sec.appendChild(el('div', { className:'ultra-note' }, '✦ Ultra — logos and exchange data loading for held positions'));
+  }
+
   a.appendChild(sec);
 }
 
@@ -1625,6 +1873,15 @@ function renderPositions(a) {
     top.appendChild(el('div', { className:'pos-tile-sym' }, holding.symbol));
     if (ch) top.appendChild(el('div', { className:'pos-tile-chg ' + (ch.pct >= 0 ? 'pnl-up' : 'pnl-dn') }, fmtPct(ch.pct)));
     tile.appendChild(top);
+
+    if (S.ultraMode) {
+      const logoUrl = logoCache[holding.symbol];
+      if (logoUrl) {
+        const img = el('img', { src: logoUrl, className:'pos-tile-logo', alt: holding.symbol });
+        img.onerror = () => { img.style.display = 'none'; };
+        tile.insertBefore(img, tile.firstChild);
+      }
+    }
 
     if (prices) tile.appendChild(el('div', { className:'pos-tile-spark' }, sparklineSVG(prices, 80, 26)));
 
@@ -2090,6 +2347,88 @@ function renderRealCalc(a) {
   a.appendChild(panel);
 }
 
+// ─── RENDER: PORTFOLIO REVIEW ───
+function renderReview(a) {
+  const trigger = el('button', {
+    className: 'review-trigger',
+    onClick() { S.reviewOpen = !S.reviewOpen; saveAll(); render(); },
+  });
+  trigger.appendChild(el('span', { className:'review-trigger-icon' }, '📊'));
+  const txt = el('div', { className:'review-trigger-text' });
+  txt.appendChild(el('strong', null, 'My portfolio review'));
+  txt.appendChild(el('span', null, ' · earnings over time, what you own, when you bought'));
+  trigger.appendChild(txt);
+  trigger.appendChild(el('span', { className:'review-arrow' + (S.reviewOpen ? ' open' : '') }, '▶'));
+  a.appendChild(trigger);
+
+  if (!S.reviewOpen) return;
+
+  const panel = el('div', { className:'review-panel' });
+
+  // ── Purchase timeline ──
+  const buys = transactions.filter(t => t.type === 'BUY').slice().reverse(); // newest first
+  if (buys.length === 0) {
+    panel.appendChild(el('div', { className:'chart-empty' }, 'No purchases yet.'));
+  } else {
+    panel.appendChild(el('div', { className:'realcalc-label' }, 'What you bought and when'));
+    buys.forEach(tx => {
+      const price = getPrice(tx.symbol);
+      const nowVal = price ? price * tx.qty : null;
+      const pnl = nowVal ? nowVal - tx.total : null;
+      const pnlUp = pnl !== null ? pnl >= 0 : true;
+      const d = new Date(tx.timestamp);
+      const dateStr = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'2-digit' });
+      const timeStr = d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+
+      const row = el('div', { className:'review-tx-row' });
+      const left = el('div', { className:'review-tx-left' });
+      left.appendChild(el('span', { className:'review-tx-sym' }, tx.symbol));
+      left.appendChild(el('span', { className:'review-tx-detail' }, tx.qty + ' @ ' + fmtShort(tx.price)));
+      row.appendChild(left);
+      const mid = el('div', { className:'review-tx-date' }, dateStr + ' ' + timeStr);
+      row.appendChild(mid);
+      const right = el('div', { className:'review-tx-right' });
+      right.appendChild(el('div', { className:'review-tx-cost' }, fmtShort(tx.total)));
+      if (pnl !== null) {
+        right.appendChild(el('div', { className: pnlUp ? 'pnl-up' : 'pnl-dn', style:'font-size:0.7rem;font-weight:700' },
+          (pnlUp ? '+' : '') + fmtShort(pnl) + ' now'));
+      }
+      row.appendChild(right);
+      panel.appendChild(row);
+    });
+  }
+
+  // ── Mini purchase timeline graph ──
+  if (buys.length >= 2 && profile) {
+    panel.appendChild(el('div', { className:'realcalc-label', style:'margin-top:0.8rem' }, 'Purchase timeline'));
+    const W = 440, H = 60;
+    const times = buys.map(b => new Date(b.timestamp).getTime()).reverse();
+    const totals = buys.map(b => b.total).reverse();
+    const minT = times[0], maxT = times[times.length-1];
+    const rangeT = (maxT - minT) || 1;
+    const maxTot = Math.max(...totals);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    let svgInner = '';
+    times.forEach((t, i) => {
+      const x = (((t - minT) / rangeT) * (W - 20) + 10).toFixed(1);
+      const r = Math.max(4, Math.min(14, (totals[i] / maxTot) * 12));
+      const price = getPrice(buys[buys.length-1-i]?.symbol);
+      const pnl = price ? price * buys[buys.length-1-i].qty - buys[buys.length-1-i].total : 0;
+      const col = pnl >= 0 ? '#5cbf8a' : '#d46a6a';
+      const sym = buys[buys.length-1-i]?.symbol || '';
+      svgInner +=
+        '<circle cx="' + x + '" cy="30" r="' + r + '" fill="' + col + '" opacity="0.8"/>' +
+        '<text x="' + x + '" y="' + (H-4) + '" font-size="8" fill="rgba(140,140,140,0.8)" font-family="system-ui" text-anchor="middle">' + sym + '</text>';
+    });
+    svg.innerHTML = svgInner;
+    panel.appendChild(el('div', { className:'chart-svg-wrap' }, svg));
+  }
+
+  a.appendChild(panel);
+}
+
 // ─── RENDER: MAKE IT REAL ───
 function renderMakeItReal(a) {
   if (!portfolio || portfolio.holdings.length === 0) return;
@@ -2195,18 +2534,37 @@ function renderHistory(a) {
 function renderSettings(a) {
   const row = el('div', { className:'settings-row' });
 
-  // API key toggle
   const apiKey = profile && profile.claudeApiKey;
   row.appendChild(el('button', { className:'ghost-btn', onClick() {
     const k = prompt('Claude API key (for Pro AI picks):', apiKey || '');
     if (k !== null) { profile.claudeApiKey = k.trim(); saveAll(); }
   }}, apiKey ? '🔑 API key set' : '+ Add API key'));
 
-  // Reset
+  row.appendChild(el('button', { className:'ghost-btn', onClick() {
+    const code = btoa(JSON.stringify({ v:1, p:profile, pf:portfolio, tx:transactions.slice(-200), sn:snapshots.slice(-200) }));
+    const box = prompt('Your session code — copy this and paste it on another device:', code);
+  }}, '💾 Save session code'));
+
+  row.appendChild(el('button', { className:'ghost-btn', onClick() {
+    const code = prompt('Paste your session code:');
+    if (!code) return;
+    try {
+      const data = JSON.parse(atob(code.trim()));
+      if (data.v === 1) {
+        profile = data.p; portfolio = data.pf;
+        transactions = data.tx || []; snapshots = data.sn || [];
+        saveAll(); render();
+        alert('Session loaded!');
+      }
+    } catch(e) { alert('Invalid code — check you copied it fully.'); }
+  }}, '📲 Load session code'));
+
+  row.appendChild(el('button', { className:'ghost-btn', disabled: true, style:'opacity:0.35;cursor:not-allowed' }, '🔑 Sign in with Google (coming soon)'));
+
   row.appendChild(el('button', { className:'ghost-btn danger', onClick() {
     if (confirm('Reset everything? Your fake portfolio will be wiped.')) {
-      localStorage.clear(); profile = null; portfolio = null; transactions = []; priceCache = {};
-      S = { luckyResult:null, luckyLoading:false, luckySource:null, proMode:false, aiPrompt:'', buyQty:1, buyingSymbol:null, historyOpen:false, setupBalance:10000, refreshing:false };
+      localStorage.clear(); profile = null; portfolio = null; transactions = []; priceCache = {}; snapshots = [];
+      S.slip = []; S.proMode = false; S.ultraMode = false; S.reviewOpen = false;
       render();
     }
   }}, 'Reset portfolio'));

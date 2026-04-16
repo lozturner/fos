@@ -1,0 +1,72 @@
+%%{ init: { 'theme': 'base', 'themeVariables': {
+  'primaryColor': '#cce3de', 'primaryTextColor': '#3a3a3a',
+  'primaryBorderColor': '#6b9080', 'lineColor': '#6b9080',
+  'secondaryColor': '#eae4e9', 'tertiaryColor': '#dda77b'
+} } }%%
+
+flowchart TD
+    OPEN((Open Desktop)) --> BRIEFING
+
+    subgraph BRIEFING["Morning Briefing"]
+        B1["Greeting + date"]
+        B1 --> B2{"Stale check-in?"}
+        B2 -->|">2 days"| B3["Nudge: Open Bring"]
+        B2 -->|"Recent"| B4["Show last session"]
+        B4 --> B5{"Unplayed WOOP?"}
+        B5 -->|"Yes"| B6["Nudge: Play session"]
+        B5 -->|"No"| B7{"Recent spending?"}
+        B7 -->|"Yes"| B8["Show 7-day total"]
+        B7 -->|"No"| B9["All clear"]
+    end
+
+    BRIEFING -->|"Launch app"| APPS
+    BRIEFING -->|"View capabilities"| MATRIX
+    BRIEFING -->|"View memory"| MEMORY
+    BRIEFING -->|"View flow"| FLOW
+
+    subgraph APPS["App Launcher"]
+        A1["Bring - check in"]
+        A2["Prompt Forge - prompts"]
+        A3["WOOP - coaching"]
+        A4["Spend Chat - spending"]
+        A5["Whisper - voice"]
+    end
+
+    APPS -->|"opens in new tab"| RUNNING["App running"]
+    RUNNING -->|"return"| BRIEFING
+
+    subgraph MATRIX["Capability Matrix"]
+        M1["MCP Servers"]
+        M2["Agent Types"]
+        M3["Skills"]
+    end
+
+    MATRIX --> BRIEFING
+
+    subgraph MEMORY["Temporal Memory"]
+        MEM1["Auto-log every action"]
+        MEM1 --> MEM2["Timeline events"]
+        MEM2 --> MEM3{"Export?"}
+        MEM3 -->|"MD"| MEM4["Markdown + JSON"]
+        MEM3 -->|"JSONL"| MEM5["Timeline as JSONL"]
+        MEM4 --> MEM6["Rebuild from file"]
+    end
+
+    MEMORY --> BRIEFING
+
+    subgraph ACCT["Accountability"]
+        AC1["Check staleness"]
+        AC2["Check unfinished"]
+        AC3["Check patterns"]
+        AC4["Nudge with escape"]
+    end
+
+    BRIEFING -.->|"woven in"| ACCT
+
+    style BRIEFING fill:#cce3de,stroke:#6b9080
+    style APPS fill:#cce3de,stroke:#6b9080
+    style MATRIX fill:#eae4e9,stroke:#9a8c98
+    style MEMORY fill:#f9e2af,stroke:#dda77b
+    style ACCT fill:#f0e6d3,stroke:#dda77b
+    style FLOW fill:#eae4e9,stroke:#9a8c98
+    style RUNNING fill:#dda77b,stroke:#c4956e

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit — Logic Board</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --pcb-bg: #0b1a0e;
+  --trace-live: #00ff88;
+  --trace-dead: #1a3020;
+  --trace-warn: #ff9500;
+  --node-bg: #0f2213;
+  --node-border-live: #00cc66;
+  --node-border-dead: #cc3333;
+  --node-border-warn: #ff9500;
+  --node-border-blue: #4488ff;
+  --node-border-purple: #9966ff;
+  --glow-live: 0 0 16px rgba(0,255,136,0.35), 0 0 4px rgba(0,255,136,0.7);
+  --glow-dead: 0 0 16px rgba(204,51,51,0.35), 0 0 4px rgba(204,51,51,0.6);
+  --glow-warn: 0 0 16px rgba(255,149,0,0.35), 0 0 4px rgba(255,149,0,0.6);
+  --glow-blue: 0 0 16px rgba(68,136,255,0.35), 0 0 4px rgba(68,136,255,0.6);
+  --glow-purple: 0 0 16px rgba(153,102,255,0.35), 0 0 4px rgba(153,102,255,0.6);
+  --text-live: #00ff88;
+  --text-dead: #ff4444;
+  --text-warn: #ffaa00;
+  --text-blue: #66aaff;
+  --text-purple: #bb99ff;
+  --text-dim: #3a6a45;
+  --text-muted: #558866;
+  --font-mono: 'Courier New', 'Lucida Console', monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+body {
+  font-family: var(--font-mono);
+  background: var(--pcb-bg);
+  color: var(--text-live);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PCB grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app { position: relative; z-index: 1; }
+
+/* ── Top bar ──────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid rgba(0,255,136,0.1);
+  background: rgba(11,26,14,0.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.brand-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--trace-live);
+  box-shadow: var(--glow-live);
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+.topbar-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.stat { text-align: center; }
+.stat-val { font-weight: 700; font-size: 0.95rem; color: var(--text-live); }
+.stat-val.dead { color: var(--text-dead); }
+.stat-val.warn { color: var(--text-warn); }
+
+/* ── Section tabs ─────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(0,255,136,0.1);
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  background: rgba(11,26,14,0.8);
+}
+
+.tab {
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.tab:hover { color: var(--text-live); }
+
+.tab.active-sub  { color: var(--text-live);   border-bottom-color: var(--text-live); }
+.tab.active-refund { color: var(--text-dead); border-bottom-color: var(--text-dead); }
+.tab.active-buy  { color: var(--text-blue);   border-bottom-color: var(--text-blue); }
+.tab.active-supp { color: var(--text-purple); border-bottom-color: var(--text-purple); }
+.tab.active-all  { color: var(--text-warn);   border-bottom-color: var(--text-warn); }
+
+/* ── Board ────────────────────────────────────────────────────────── */
+.board {
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.1rem;
+}
+
+.section-heading {
+  grid-column: 1 / -1;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(0,255,136,0.07);
+  margin-top: 0.5rem;
+}
+
+.section-heading:first-child { margin-top: 0; }
+
+/* ── Node ─────────────────────────────────────────────────────────── */
+.node {
+  background: var(--node-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+/* type-driven border/glow */
+.node[data-type="subscription"].live  { border: 1px solid var(--node-border-live);   box-shadow: var(--glow-live); }
+.node[data-type="subscription"].dead  { border: 1px solid var(--node-border-dead);   box-shadow: var(--glow-dead); }
+.node[data-type="subscription"].warn  { border: 1px solid var(--node-border-warn);   box-shadow: var(--glow-warn); }
+.node[data-type="refund"]             { border: 1px solid var(--node-border-dead);   box-shadow: var(--glow-dead); }
+.node[data-type="buy"].pending        { border: 1px solid var(--node-border-blue);   box-shadow: var(--glow-blue); }
+.node[data-type="buy"].live           { border: 1px solid var(--node-border-live);   box-shadow: var(--glow-live); }
+.node[data-type="supplement"].live    { border: 1px solid var(--node-border-purple); box-shadow: var(--glow-purple); }
+.node[data-type="supplement"].warn    { border: 1px solid var(--node-border-warn);   box-shadow: var(--glow-warn); }
+.node[data-type="supplement"].dead    { border: 1px solid var(--node-border-dead);   box-shadow: var(--glow-dead); }
+
+.node-ref {
+  position: absolute;
+  top: 5px; right: 8px;
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+/* Node head */
+.node-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid rgba(0,255,136,0.06);
+}
+
+/* Toggle switch */
+.switch-wrap {
+  position: relative;
+  width: 40px; height: 20px;
+  flex-shrink: 0;
+}
+.switch-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+.switch-track {
+  position: absolute; inset: 0;
+  border-radius: 10px;
+  background: rgba(204,51,51,0.25);
+  border: 1px solid var(--node-border-dead);
+  cursor: pointer;
+  transition: all 0.22s;
+}
+.switch-wrap input:checked + .switch-track {
+  background: rgba(0,204,102,0.15);
+  border-color: var(--node-border-live);
+}
+.switch-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text-dead);
+  transition: all 0.22s;
+  box-shadow: 0 0 5px rgba(204,51,51,0.6);
+}
+.switch-wrap input:checked ~ .switch-knob {
+  left: 23px;
+  background: var(--text-live);
+  box-shadow: 0 0 5px rgba(0,255,136,0.8);
+}
+
+/* type badge */
+.type-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+.type-badge.subscription { color: var(--text-live);   border-color: var(--node-border-live);   background: rgba(0,255,136,0.07); }
+.type-badge.refund       { color: var(--text-dead);   border-color: var(--node-border-dead);   background: rgba(204,51,51,0.07); }
+.type-badge.buy          { color: var(--text-blue);   border-color: var(--node-border-blue);   background: rgba(68,136,255,0.07); }
+.type-badge.supplement   { color: var(--text-purple); border-color: var(--node-border-purple); background: rgba(153,102,255,0.07); }
+
+.node-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node[data-type="subscription"].live  .node-name { color: var(--text-live); }
+.node[data-type="subscription"].dead  .node-name { color: var(--text-dead); }
+.node[data-type="subscription"].warn  .node-name { color: var(--text-warn); }
+.node[data-type="refund"]             .node-name { color: var(--text-dead); }
+.node[data-type="buy"]                .node-name { color: var(--text-blue); }
+.node[data-type="supplement"].live    .node-name { color: var(--text-purple); }
+.node[data-type="supplement"].warn    .node-name { color: var(--text-warn); }
+.node[data-type="supplement"].dead    .node-name { color: var(--text-dead); }
+
+.status-pill {
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.08em; padding: 2px 6px;
+  border-radius: 3px; text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pill-live    { background: rgba(0,255,136,0.1);   color: var(--text-live);   border: 1px solid var(--node-border-live); }
+.pill-dead    { background: rgba(204,51,51,0.1);   color: var(--text-dead);   border: 1px solid var(--node-border-dead); }
+.pill-warn    { background: rgba(255,149,0,0.1);   color: var(--text-warn);   border: 1px solid var(--node-border-warn); }
+.pill-pending { background: rgba(68,136,255,0.1);  color: var(--text-blue);   border: 1px solid var(--node-border-blue); }
+.pill-done    { background: rgba(0,255,136,0.1);   color: var(--text-live);   border: 1px solid var(--node-border-live); }
+
+/* Node body */
+.node-body {
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.node-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.77rem;
+}
+
+.node-label { color: var(--text-muted); font-size: 0.7rem; }
+
+.node-val {
+  font-weight: 600;
+  font-size: 0.77rem;
+}
+
+/* Colour node-val by parent state */
+.node[data-type="subscription"].live  .node-val { color: var(--text-live); }
+.node[data-type="subscription"].dead  .node-val { color: var(--text-dead); }
+.node[data-type="subscription"].warn  .node-val { color: var(--text-warn); }
+.node[data-type="refund"]             .node-val { color: var(--text-dead); }
+.node[data-type="buy"]                .node-val { color: var(--text-blue); }
+.node[data-type="supplement"].live    .node-val { color: var(--text-purple); }
+.node[data-type="supplement"].warn    .node-val { color: var(--text-warn); }
+.node[data-type="supplement"].dead    .node-val { color: var(--text-dead); }
+
+/* Lockout bar */
+.lockout-label {
+  font-size: 0.67rem;
+  color: var(--text-dead);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+.lockout-track {
+  height: 3px; background: rgba(204,51,51,0.15);
+  border-radius: 2px; overflow: hidden;
+}
+.lockout-fill {
+  height: 100%; background: var(--text-dead);
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(204,51,51,0.5);
+  transition: width 0.5s ease;
+}
+
+/* Consequences */
+.consequences {
+  padding: 0.5rem 0.65rem;
+  background: rgba(204,51,51,0.05);
+  border: 1px solid rgba(204,51,51,0.12);
+  border-radius: 5px;
+}
+.consequence-title {
+  font-size: 0.6rem; color: var(--text-dead);
+  text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem;
+}
+.consequence-item {
+  font-size: 0.72rem; color: rgba(255,68,68,0.7);
+  padding: 0.1rem 0;
+  display: flex; align-items: flex-start; gap: 0.35rem;
+}
+.consequence-item::before { content: '▸'; color: var(--text-dead); flex-shrink: 0; }
+
+/* Note */
+.node-note {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-style: italic;
+  cursor: pointer;
+  padding: 0.3rem 0;
+}
+.node-note:hover { color: var(--text-muted); }
+.node-note::before { content: '>_ '; }
+
+/* Actions strip */
+.node-actions {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid rgba(0,255,136,0.05);
+  flex-wrap: wrap;
+}
+
+.btn-node {
+  padding: 0.38rem 0.65rem;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.12s;
+  border: 1px solid;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn-green  { background: rgba(0,204,102,0.07);  border-color: var(--node-border-live);   color: var(--text-live); }
+.btn-green:hover  { background: rgba(0,204,102,0.18); }
+.btn-red    { background: rgba(204,51,51,0.07);   border-color: var(--node-border-dead);   color: var(--text-dead); }
+.btn-red:hover    { background: rgba(204,51,51,0.18); }
+.btn-orange { background: rgba(255,149,0,0.07);   border-color: var(--node-border-warn);   color: var(--text-warn); }
+.btn-orange:hover { background: rgba(255,149,0,0.18); }
+.btn-blue   { background: rgba(68,136,255,0.07);  border-color: var(--node-border-blue);   color: var(--text-blue); }
+.btn-blue:hover   { background: rgba(68,136,255,0.18); }
+.btn-purple { background: rgba(153,102,255,0.07); border-color: var(--node-border-purple); color: var(--text-purple); }
+.btn-purple:hover { background: rgba(153,102,255,0.18); }
+.btn-ghost  { background: transparent; border-color: rgba(0,255,136,0.12); color: var(--text-muted); }
+.btn-ghost:hover  { border-color: rgba(0,255,136,0.3); color: var(--text-live); }
+
+/* ── Add zone ─────────────────────────────────────────────────────── */
+.add-zone {
+  padding: 0 1.5rem 2rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-add {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px dashed rgba(0,255,136,0.15);
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+
+.btn-add:hover { border-color: rgba(0,255,136,0.45); }
+.btn-add.sub:hover  { color: var(--text-live);   border-color: var(--node-border-live); }
+.btn-add.ref:hover  { color: var(--text-dead);   border-color: var(--node-border-dead); }
+.btn-add.buy:hover  { color: var(--text-blue);   border-color: var(--node-border-blue); }
+.btn-add.supp:hover { color: var(--text-purple); border-color: var(--node-border-purple); }
+
+.btn-add.sub  { color: rgba(0,255,136,0.4); }
+.btn-add.ref  { color: rgba(255,68,68,0.4); }
+.btn-add.buy  { color: rgba(68,136,255,0.4); }
+.btn-add.supp { color: rgba(153,102,255,0.4); }
+
+/* ── Modal ────────────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: #0b1a0e;
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 10px;
+  padding: 1.4rem;
+  width: 380px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(0,255,136,0.08);
+}
+
+.modal-title {
+  font-size: 0.82rem; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 1.1rem;
+}
+.modal-title.sub    { color: var(--text-live); }
+.modal-title.refund { color: var(--text-dead); }
+.modal-title.buy    { color: var(--text-blue); }
+.modal-title.supplement { color: var(--text-purple); }
+
+.field { margin-bottom: 0.85rem; }
+.field label {
+  display: block; font-size: 0.67rem;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 0.3rem;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  background: rgba(0,255,136,0.03);
+  border: 1px solid rgba(0,255,136,0.13);
+  border-radius: 5px;
+  padding: 0.5rem 0.7rem;
+  font: inherit; font-size: 0.82rem;
+  color: var(--text-live);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: rgba(0,255,136,0.45);
+}
+.field select option { background: #0b1a0e; }
+.field textarea { resize: vertical; min-height: 60px; }
+
+.modal-actions { display: flex; gap: 0.65rem; margin-top: 1.1rem; }
+.btn-modal {
+  flex: 1; padding: 0.55rem; border-radius: 4px;
+  font: inherit; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase; border: 1px solid;
+}
+.btn-modal-save  { background: rgba(0,204,102,0.08); border-color: var(--node-border-live); color: var(--text-live); }
+.btn-modal-save:hover { background: rgba(0,204,102,0.22); }
+.btn-modal-abort { background: transparent; border-color: rgba(0,255,136,0.12); color: var(--text-muted); }
+.btn-modal-abort:hover { color: var(--text-live); border-color: rgba(0,255,136,0.3); }
+
+/* Scanline */
+.scanline {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,136,0.25), transparent);
+  animation: scan 5s linear infinite; pointer-events: none; z-index: 999;
+}
+@keyframes scan { from{top:0} to{top:100vh} }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div id="app">
+
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot"></div>
+      LOGIC_BOARD // LOZ
+    </div>
+    <div class="topbar-stats">
+      <div class="stat"><div class="stat-val" id="sCost">£0</div><div>LIVE/MO</div></div>
+      <div class="stat"><div class="stat-val dead" id="sRefund">0</div><div>REFUNDS</div></div>
+      <div class="stat"><div class="stat-val warn" id="sBuy">0</div><div>TO BUY</div></div>
+      <div class="stat"><div class="stat-val" id="sWarn">0</div><div>REVIEW</div></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" id="tab-all"  onclick="setFilter('all')">ALL NODES</button>
+    <button class="tab" id="tab-sub"  onclick="setFilter('subscription')">SUBSCRIPTIONS</button>
+    <button class="tab" id="tab-ref"  onclick="setFilter('refund')">REFUNDS</button>
+    <button class="tab" id="tab-buy"  onclick="setFilter('buy')">BUY QUEUE</button>
+    <button class="tab" id="tab-supp" onclick="setFilter('supplement')">SUPPLEMENTS</button>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="add-zone">
+    <button class="btn-add sub"  onclick="openModal('subscription')">+ SUBSCRIPTION</button>
+    <button class="btn-add ref"  onclick="openModal('refund')">+ REFUND</button>
+    <button class="btn-add buy"  onclick="openModal('buy')">+ BUY ITEM</button>
+    <button class="btn-add supp" onclick="openModal('supplement')">+ SUPPLEMENT</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">NEW NODE</div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="fName" placeholder="e.g. Shadow, Infra, Car seat">
+    </div>
+    <div class="field" id="fCostWrap">
+      <label>Cost (£) — monthly if sub, one-off if buy/refund</label>
+      <input type="number" id="fCost" placeholder="9.99" step="0.01" min="0">
+    </div>
+    <div class="field" id="fStatusWrap">
+      <label>Status</label>
+      <select id="fStatus">
+        <option value="live">LIVE</option>
+        <option value="dead">DEAD</option>
+        <option value="warn">WARN</option>
+        <option value="pending">PENDING</option>
+        <option value="done">DONE</option>
+      </select>
+    </div>
+    <div class="field" id="fLockoutWrap">
+      <label>Days locked out</label>
+      <input type="number" id="fLockout" placeholder="5" min="0">
+    </div>
+    <div class="field" id="fLockoutMaxWrap">
+      <label>Max lockout days</label>
+      <input type="number" id="fLockoutMax" placeholder="30" min="1">
+    </div>
+    <div class="field">
+      <label>URL (manage / buy / refund link)</label>
+      <input type="url" id="fUrl" placeholder="https://...">
+    </div>
+    <div class="field" id="fConsequencesWrap">
+      <label>Consequences / side effects (one per line)</label>
+      <textarea id="fConsequences" placeholder="No cloud PC access&#10;Files locked"></textarea>
+    </div>
+    <div class="field">
+      <label>Note</label>
+      <input type="text" id="fNote" placeholder="Context...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-abort" onclick="closeModal()">ABORT</button>
+      <button class="btn-modal btn-modal-save" onclick="saveNode()">COMMIT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+
+const KEY = 'circuit_nodes_v2';
+
+const DEFAULTS = [
+  // ── SUBSCRIPTIONS ──
+  { id:'shadow',    type:'subscription', ref:'U1', name:'Shadow',       cost:29.99, status:'live',    lockoutDays:0, lockoutMax:30, url:'https://shadow.tech/account', consequences:['No cloud PC access','Game saves locked','Files inaccessible'], note:'Was dead 5 days after car purchase — now restored' },
+  { id:'cowork',    type:'subscription', ref:'U2', name:'Claude Cowork', cost:90,    status:'live',    lockoutDays:0, lockoutMax:0,  url:'https://claude.ai', consequences:[], note:'Still really useful — keep' },
+  { id:'wispr',     type:'subscription', ref:'U3', name:'Wispr Flow',    cost:0,     status:'live',    lockoutDays:0, lockoutMax:0,  url:'https://wisprflow.com/account', consequences:[], note:'Bought at a discount' },
+  { id:'spotify',   type:'subscription', ref:'U4', name:'Spotify',       cost:10.99, status:'live',    lockoutDays:0, lockoutMax:30, url:'https://www.spotify.com/account/subscription/', consequences:['Reverts to free (ads)','No offline downloads'], note:'' },
+
+  // ── REFUNDS NEEDED ──
+  { id:'infra',     type:'refund', ref:'R1', name:'Infra',    cost:0, status:'dead', lockoutDays:0, lockoutMax:0, url:'https://infra.com', consequences:[], note:'Database tool — did not work, needs refund' },
+
+  // ── BUY QUEUE ──
+  { id:'laptop',    type:'buy', ref:'B1', name:'Laptop (local LLM)', cost:0,   status:'pending', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Finance — subject to credit approval. For running local models if cloud AI goes down' },
+  { id:'carseat',   type:'buy', ref:'B2', name:'Car seat',           cost:0,   status:'pending', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'For the new car' },
+  { id:'gym',       type:'buy', ref:'B3', name:'Gym membership swap', cost:0,  status:'pending', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Transfer existing membership to a gym near current location' },
+  { id:'bloodtest', type:'buy', ref:'B4', name:'Blood tests',         cost:0,  status:'pending', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Do this BEFORE buying more supplements — rationalise the stack' },
+
+  // ── SUPPLEMENTS ──
+  { id:'phenylalanine', type:'supplement', ref:'S1', name:'Phenylalanine', cost:0, status:'live', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Works — keep' },
+  { id:'collagen',      type:'supplement', ref:'S2', name:'Collagen',      cost:0, status:'live', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Works — keep' },
+  { id:'biotin',        type:'supplement', ref:'S3', name:'Biotin',        cost:0, status:'live', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Works — keep' },
+  { id:'copper',        type:'supplement', ref:'S4', name:'Copper',        cost:0, status:'warn', lockoutDays:0, lockoutMax:0, url:'', consequences:['May be affecting IBS'], note:'Review — possible IBS impact. Needs blood test' },
+  { id:'taurine',       type:'supplement', ref:'S5', name:'Taurine',       cost:0, status:'warn', lockoutDays:0, lockoutMax:0, url:'', consequences:[], note:'Uncertain — review after blood test' },
+  { id:'gluconate',     type:'supplement', ref:'S6', name:'Gluconate',     cost:0, status:'warn', lockoutDays:0, lockoutMax:0, url:'', consequences:['May be affecting IBS'], note:'Uncertain — possible IBS impact. Review after blood test' },
+];
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || DEFAULTS; }
+  catch { return DEFAULTS; }
+}
+function save(n) { localStorage.setItem(KEY, JSON.stringify(n)); }
+
+let nodes = load();
+let editingId = null;
+let modalType = 'subscription';
+let activeFilter = 'all';
+
+// ── Render ────────────────────────────────────────────────────────────────
+
+const TYPE_ORDER = ['subscription','refund','buy','supplement'];
+const TYPE_LABELS = { subscription:'SUBSCRIPTIONS', refund:'REFUNDS — ACTION NEEDED', buy:'BUY QUEUE', supplement:'SUPPLEMENTS' };
+
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const visible = activeFilter === 'all'
+    ? nodes
+    : nodes.filter(n => n.type === activeFilter);
+
+  if (activeFilter === 'all') {
+    TYPE_ORDER.forEach(type => {
+      const group = visible.filter(n => n.type === type);
+      if (!group.length) return;
+      const h = document.createElement('div');
+      h.className = 'section-heading';
+      h.textContent = '── ' + TYPE_LABELS[type] + ' (' + group.length + ')';
+      board.appendChild(h);
+      group.forEach(n => board.appendChild(makeNode(n)));
+    });
+  } else {
+    visible.forEach(n => board.appendChild(makeNode(n)));
+  }
+
+  // Stats
+  const subs = nodes.filter(n => n.type === 'subscription' && n.status === 'live');
+  const cost = subs.reduce((s, n) => s + (parseFloat(n.cost) || 0), 0);
+  const refunds = nodes.filter(n => n.type === 'refund');
+  const buys = nodes.filter(n => n.type === 'buy' && n.status === 'pending');
+  const warns = nodes.filter(n => n.status === 'warn');
+
+  document.getElementById('sCost').textContent   = '£' + cost.toFixed(2);
+  document.getElementById('sRefund').textContent = refunds.length;
+  document.getElementById('sBuy').textContent    = buys.length;
+  document.getElementById('sWarn').textContent   = warns.length;
+}
+
+function makeNode(n) {
+  const div = document.createElement('div');
+  div.className = 'node ' + (n.status || 'live');
+  div.dataset.type = n.type;
+
+  const st = n.status || 'live';
+  const isDead = st === 'dead';
+  const isWarn = st === 'warn';
+  const isPending = st === 'pending';
+  const isDone = st === 'done';
+  const isLive = st === 'live';
+
+  const lockPct = isDead && n.lockoutMax > 0
+    ? Math.min(100, ((n.lockoutDays || 0) / n.lockoutMax) * 100) : 0;
+  const consequences = (n.consequences || []).filter(c => c.trim());
+
+  const pillClass = { live:'pill-live', dead:'pill-dead', warn:'pill-warn', pending:'pill-pending', done:'pill-done' }[st] || 'pill-live';
+  const pillLabel = { live:'LIVE', dead:'DEAD', warn:'REVIEW', pending:'PENDING', done:'DONE' }[st] || st.toUpperCase();
+
+  // Which toggle state to show (only meaningful for subs and supplements)
+  const showToggle = n.type === 'subscription' || n.type === 'supplement';
+
+  div.innerHTML = `
+    <div class="node-ref">${esc(n.ref || '')}</div>
+    <div class="node-head">
+      ${showToggle ? `
+        <label class="switch-wrap" title="${isLive ? 'Cut circuit' : 'Restore circuit'}">
+          <input type="checkbox" ${isLive ? 'checked' : ''} onchange="toggleNode('${n.id}', this.checked)">
+          <div class="switch-track"></div>
+          <div class="switch-knob"></div>
+        </label>` : `<div style="width:4px;flex-shrink:0;"></div>`}
+      <div class="node-name">${esc(n.name)}</div>
+      <div class="type-badge ${n.type}">${n.type === 'buy' ? 'BUY' : n.type === 'refund' ? 'REFUND' : n.type === 'supplement' ? 'SUPP' : 'SUB'}</div>
+      <div class="status-pill ${pillClass}">${pillLabel}</div>
+    </div>
+
+    <div class="node-body">
+      ${n.type === 'subscription' ? `
+        <div class="node-row">
+          <span class="node-label">GATE</span>
+          <span class="node-val">${isDead ? 'OPEN — NO CURRENT' : isWarn ? 'PARTIAL — WARNING' : 'CLOSED — LIVE'}</span>
+        </div>` : ''}
+      ${(parseFloat(n.cost) > 0) ? `
+        <div class="node-row">
+          <span class="node-label">${n.type === 'subscription' ? 'COST/MO' : 'COST'}</span>
+          <span class="node-val">£${parseFloat(n.cost).toFixed(2)}</span>
+        </div>` : ''}
+      ${isDead && n.lockoutDays > 0 ? `
+        <div>
+          <div class="lockout-label">LOCKED OUT: ${n.lockoutDays}d${n.lockoutMax ? ' / ' + n.lockoutMax + 'd max' : ''}</div>
+          <div class="lockout-track"><div class="lockout-fill" style="width:${lockPct}%"></div></div>
+        </div>` : ''}
+      ${consequences.length > 0 && (isDead || isWarn || n.type === 'refund') ? `
+        <div class="consequences">
+          <div class="consequence-title">CONSEQUENCE OUTPUT</div>
+          ${consequences.map(c => `<div class="consequence-item">${esc(c)}</div>`).join('')}
+        </div>` : ''}
+      ${n.note ? `<div class="node-note" onclick="editNode('${n.id}')">${esc(n.note)}</div>` : ''}
+    </div>
+
+    <div class="node-actions">
+      ${n.type === 'refund' && n.url ? `<a class="btn-node btn-red" href="${esc(n.url)}" target="_blank" rel="noopener">REQUEST REFUND</a>` : ''}
+      ${n.type === 'refund' ? `<button class="btn-node btn-ghost" onclick="markDone('${n.id}')">MARK DONE</button>` : ''}
+      ${n.type === 'buy' && isPending && n.url ? `<a class="btn-node btn-blue" href="${esc(n.url)}" target="_blank" rel="noopener">BUY NOW</a>` : ''}
+      ${n.type === 'buy' && isPending ? `<button class="btn-node btn-green" onclick="markDone('${n.id}')">MARK BOUGHT</button>` : ''}
+      ${n.type === 'subscription' && isDead && n.url ? `<a class="btn-node btn-green" href="${esc(n.url)}" target="_blank" rel="noopener">RESTORE</a>` : ''}
+      ${n.type === 'subscription' && isLive && n.url ? `<a class="btn-node btn-orange" href="${esc(n.url)}" target="_blank" rel="noopener">MANAGE</a>` : ''}
+      ${n.type === 'supplement' && isWarn ? `<button class="btn-node btn-purple" onclick="openChat()" title="Go to Spend Chat to log this">REVIEW</button>` : ''}
+      <button class="btn-node btn-ghost" onclick="editNode('${n.id}')">EDIT</button>
+      <button class="btn-node btn-ghost" onclick="deleteNode('${n.id}')" style="padding:0.38rem 0.55rem;">✕</button>
+    </div>
+  `;
+
+  return div;
+}
+
+// ── Filter / tabs ─────────────────────────────────────────────────────────
+
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.tab').forEach(t => t.className = 'tab');
+  const tabMap = { all:'all', subscription:'sub', refund:'ref', buy:'buy', supplement:'supp' };
+  const el = document.getElementById('tab-' + tabMap[f]);
+  if (el) el.className = 'tab active-' + (f === 'all' ? 'all' : tabMap[f] === 'sub' ? 'sub' : tabMap[f] === 'ref' ? 'refund' : tabMap[f] === 'buy' ? 'buy' : 'supp');
+  render();
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────
+
+function toggleNode(id, checked) {
+  const n = nodes.find(x => x.id === id);
+  if (!n) return;
+  n.status = checked ? 'live' : 'dead';
+  if (checked) n.lockoutDays = 0;
+  save(nodes);
+  render();
+}
+
+function markDone(id) {
+  const n = nodes.find(x => x.id === id);
+  if (!n) return;
+  n.status = 'done';
+  save(nodes);
+  render();
+}
+
+function deleteNode(id) {
+  nodes = nodes.filter(x => x.id !== id);
+  save(nodes);
+  render();
+}
+
+function editNode(id) {
+  const n = nodes.find(x => x.id === id);
+  if (!n) return;
+  editingId = id;
+  modalType = n.type;
+  setupModalFields(n.type);
+  document.getElementById('modalTitle').textContent = 'EDIT: ' + n.name.toUpperCase();
+  document.getElementById('fName').value = n.name || '';
+  document.getElementById('fCost').value = n.cost || '';
+  document.getElementById('fStatus').value = n.status || 'live';
+  document.getElementById('fLockout').value = n.lockoutDays || '';
+  document.getElementById('fLockoutMax').value = n.lockoutMax || '';
+  document.getElementById('fUrl').value = n.url || '';
+  document.getElementById('fConsequences').value = (n.consequences || []).join('\n');
+  document.getElementById('fNote').value = n.note || '';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openModal(type) {
+  editingId = null;
+  modalType = type;
+  setupModalFields(type);
+  const labels = { subscription:'NEW SUBSCRIPTION', refund:'NEW REFUND', buy:'NEW BUY ITEM', supplement:'NEW SUPPLEMENT' };
+  document.getElementById('modalTitle').textContent = labels[type] || 'NEW NODE';
+  document.getElementById('modalTitle').className = 'modal-title ' + type;
+  document.getElementById('fName').value = '';
+  document.getElementById('fCost').value = '';
+  document.getElementById('fStatus').value = type === 'buy' ? 'pending' : type === 'refund' ? 'dead' : 'live';
+  document.getElementById('fLockout').value = '';
+  document.getElementById('fLockoutMax').value = type === 'subscription' ? '30' : '';
+  document.getElementById('fUrl').value = '';
+  document.getElementById('fConsequences').value = '';
+  document.getElementById('fNote').value = '';
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('fName').focus(), 100);
+}
+
+function setupModalFields(type) {
+  const showLockout = type === 'subscription';
+  const showConsequences = type === 'subscription' || type === 'refund' || type === 'supplement';
+  document.getElementById('fLockoutWrap').style.display = showLockout ? '' : 'none';
+  document.getElementById('fLockoutMaxWrap').style.display = showLockout ? '' : 'none';
+  document.getElementById('fConsequencesWrap').style.display = showConsequences ? '' : 'none';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  editingId = null;
+}
+
+function saveNode() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { document.getElementById('fName').focus(); return; }
+  const consequences = document.getElementById('fConsequences').value
+    .split('\n').map(c => c.trim()).filter(Boolean);
+  const data = {
+    name,
+    type: modalType,
+    cost: parseFloat(document.getElementById('fCost').value) || 0,
+    status: document.getElementById('fStatus').value,
+    lockoutDays: parseInt(document.getElementById('fLockout').value) || 0,
+    lockoutMax: parseInt(document.getElementById('fLockoutMax').value) || 0,
+    url: document.getElementById('fUrl').value.trim(),
+    consequences,
+    note: document.getElementById('fNote').value.trim(),
+  };
+
+  if (editingId) {
+    const idx = nodes.findIndex(x => x.id === editingId);
+    if (idx !== -1) nodes[idx] = { ...nodes[idx], ...data };
+  } else {
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now().toString(36);
+    const typeRefs = { subscription:'U', refund:'R', buy:'B', supplement:'S' };
+    const prefix = typeRefs[modalType] || 'N';
+    const count = nodes.filter(n => n.type === modalType).length + 1;
+    nodes.push({ id, ref: prefix + count, ...data });
+  }
+
+  save(nodes);
+  closeModal();
+  render();
+}
+
+function openChat() {
+  window.open('http://localhost:8767/spend-chat.html', '_blank');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('modalOverlay').classList.contains('show') && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault(); saveNode();
+  }
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+setFilter('all');
+</script>
+</body>
+</html>

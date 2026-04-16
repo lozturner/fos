@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whisper Float</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6b9080;
+  --primary-hover: #5a7d6e;
+  --warm: #dda77b;
+  --bg: #f7f5f0;
+  --text: #3a3a3a;
+  --card-bg: #fff;
+  --shadow: 0 2px 12px rgba(0,0,0,0.15);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a2e;
+    --text: #e0e0e0;
+    --card-bg: #252540;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+    --primary: #7db39a;
+    --primary-hover: #6a9f87;
+    --warm: #c4956e;
+  }
+}
+
+body {
+  font-family: var(--font);
+  background: transparent;
+  min-height: 100vh;
+}
+
+/* Floating button — fixed bottom-right */
+#mic-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#mic-btn:hover {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+#mic-btn.recording {
+  background: #e74c3c;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+#mic-btn.processing {
+  background: var(--warm);
+  cursor: wait;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(231, 76, 60, 0); }
+}
+
+/* Mic icon SVG */
+#mic-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+/* Toast notification */
+#toast {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  max-width: 320px;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  z-index: 99998;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  word-break: break-word;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#toast .toast-label {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+#toast .toast-text {
+  cursor: pointer;
+}
+
+#toast .toast-text:hover {
+  text-decoration: underline;
+}
+
+/* Duration indicator */
+#duration {
+  position: fixed;
+  bottom: 86px;
+  right: 32px;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: #e74c3c;
+  font-weight: 600;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#duration.show { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<button id="mic-btn" title="Hold to speak">
+  <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+</button>
+
+<div id="duration"></div>
+
+<div id="toast">
+  <div class="toast-label">Transcribed</div>
+  <div class="toast-text" id="toastText" onclick="copyToast()"></div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8781';
+const btn = document.getElementById('mic-btn');
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+const durationEl = document.getElementById('duration');
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recording = false;
+let startTime = 0;
+let durationInterval = null;
+let toastTimeout = null;
+let lastText = '';
+
+// ── Recording ──────────────────────────────────────────────────────────────
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm'
+    });
+
+    audioChunks = [];
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      // Stop all tracks
+      stream.getTracks().forEach(t => t.stop());
+
+      const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+      if (blob.size < 1000) {
+        btn.classList.remove('recording', 'processing');
+        return; // Too short
+      }
+
+      btn.classList.remove('recording');
+      btn.classList.add('processing');
+      btn.innerHTML = '...';
+
+      try {
+        const formData = new FormData();
+        formData.append('audio', blob, 'recording.webm');
+
+        const res = await fetch(API + '/api/transcribe', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (data.text) {
+          lastText = data.text;
+          // Copy to clipboard
+          await navigator.clipboard.writeText(data.text).catch(() => {});
+          showToast(data.text);
+        } else if (data.error) {
+          showToast('Error: ' + data.error);
+        }
+      } catch (err) {
+        showToast('Could not reach whisper server');
+      } finally {
+        btn.classList.remove('processing');
+        btn.innerHTML = micSVG;
+      }
+    };
+
+    mediaRecorder.start();
+    recording = true;
+    startTime = Date.now();
+    btn.classList.add('recording');
+
+    // Show duration
+    durationEl.classList.add('show');
+    durationInterval = setInterval(() => {
+      const secs = ((Date.now() - startTime) / 1000).toFixed(1);
+      durationEl.textContent = secs + 's';
+    }, 100);
+
+  } catch (err) {
+    showToast('Microphone access denied');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && recording) {
+    recording = false;
+    mediaRecorder.stop();
+    clearInterval(durationInterval);
+    durationEl.classList.remove('show');
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+
+function showToast(text) {
+  toastText.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 6000);
+}
+
+function copyToast() {
+  if (lastText) {
+    navigator.clipboard.writeText(lastText).catch(() => {});
+    showToast('Copied!');
+  }
+}
+
+// ── Events ─────────────────────────────────────────────────────────────────
+
+const micSVG = btn.innerHTML;
+
+// Press and hold
+btn.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  if (!recording) startRecording();
+});
+btn.addEventListener('mouseup', () => {
+  if (recording) stopRecording();
+});
+btn.addEventListener('mouseleave', () => {
+  if (recording) stopRecording();
+});
+
+// Touch support
+btn.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (!recording) startRecording();
+});
+btn.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  if (recording) stopRecording();
+});
+
+// Keyboard: hold Space
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.repeat && !recording) {
+    e.preventDefault();
+    startRecording();
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space' && recording) {
+    e.preventDefault();
+    stopRecording();
+  }
+});
+
+// Health check on load
+fetch(API + '/api/health')
+  .then(r => r.json())
+  .then(d => {
+    if (!d.ok) showToast('Whisper: no backend available');
+  })
+  .catch(() => showToast('Whisper server not running'));
+</script>
+</body>
+</html>

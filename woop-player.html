@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOOP Player</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f7f5f0;
+  --text: #3a3a3a;
+  --text-muted: #8a8a8a;
+  --primary: #6b9080;
+  --primary-hover: #5a7d6e;
+  --accent: #cce3de;
+  --warm: #dda77b;
+  --gentle: #eae4e9;
+  --card-bg: #fff;
+  --btn-text: #fff;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a2e;
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --primary: #7db39a;
+    --primary-hover: #6a9f87;
+    --accent: #2a3a35;
+    --warm: #c4956e;
+    --gentle: #2a2535;
+    --card-bg: #252540;
+    --btn-text: #1a1a2e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+body {
+  font-family: var(--font);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.6rem; font-weight: 600; line-height: 1.3; }
+h2 { font-size: 1.3rem; font-weight: 500; line-height: 1.4; }
+.hero-text { font-size: 1.5rem; font-weight: 400; line-height: 1.5; text-align: center; }
+.sub-text { color: var(--text-muted); font-size: 0.95rem; }
+.center { text-align: center; }
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  line-height: 1.4;
+}
+.btn:active { transform: scale(0.98); }
+.btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.btn-primary { background: var(--primary); color: var(--btn-text); font-weight: 500; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-warm { background: var(--warm); color: #fff; font-weight: 500; }
+.btn-escape { background: transparent; color: var(--text-muted); font-size: 0.95rem; min-height: 44px; }
+.btn-escape:hover { color: var(--text); }
+.btn-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.spacer { height: 1rem; }
+.spacer-lg { height: 2rem; }
+.micro-msg { color: var(--primary); font-size: 0.9rem; text-align: center; font-style: italic; min-height: 1.4em; }
+
+.input-field {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 1.1rem;
+  background: var(--card-bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 80px;
+}
+.input-field:focus { outline: none; border-color: var(--primary); }
+
+.gentle-box {
+  background: var(--gentle);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ─── PLAYER-SPECIFIC ─── */
+
+.phase-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.narration-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  text-align: center;
+  animation: fadeIn 0.6s ease;
+}
+
+.prompt-card {
+  background: var(--gentle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+  border: 2px solid var(--accent);
+}
+.prompt-card p {
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.prompt-card .response-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 1rem;
+  background: var(--card-bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 60px;
+}
+.prompt-card .response-input:focus { outline: none; border-color: var(--primary); }
+.prompt-card .note { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.timer-display {
+  font-size: 2rem;
+  font-weight: 300;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.breathing-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin: 0 auto;
+  animation: breathe 4s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
+.controls-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+.ctrl-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.ctrl-btn:hover { background: var(--accent); }
+.ctrl-btn.active { background: var(--primary); color: var(--btn-text); }
+
+.settings-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.settings-row label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.settings-row select, .settings-row input[type="range"] {
+  font-family: var(--font);
+  font-size: 0.85rem;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.25rem 0.4rem;
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.session-item {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: background 0.15s;
+  border: 1px solid var(--accent);
+}
+.session-item:hover { background: var(--accent); }
+.session-item .session-date { font-size: 0.8rem; color: var(--text-muted); }
+.session-item .session-input { font-size: 0.95rem; margin-top: 0.25rem; }
+
+/* Summary */
+.summary-phase {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 0.75rem;
+}
+.summary-phase h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+.summary-phase .narration { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+.summary-phase .response { font-size: 0.95rem; color: var(--text); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--accent); font-style: italic; }
+
+.brand {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.5;
+  margin-top: 2rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+kbd {
+  background: var(--card-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 380px) {
+  #app { padding: 1.5rem 1rem; }
+  .hero-text { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ─── STATE ───
+const S = {
+  view: 'LOAD',
+  session: null,
+  phaseIndex: 0,
+  playState: 'idle', // idle, speaking, paused, prompt, done
+  voiceURI: null,
+  rate: 0.85,
+  responses: {},
+  pauseRemaining: 0,
+};
+
+let pauseTimer = null;
+let currentUtterance = null;
+
+// ─── PERSISTENCE ───
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem('woop_sessions');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+
+function loadSessionById(id) {
+  return loadSessions().find(s => s.id === id) || null;
+}
+
+function saveCompletedSession(session) {
+  const sessions = loadSessions();
+  const idx = sessions.findIndex(s => s.id === session.id);
+  if (idx >= 0) sessions[idx] = session;
+  else sessions.push(session);
+  try { localStorage.setItem('woop_sessions', JSON.stringify(sessions)); } catch(e) {}
+}
+
+// ─── RENDER ENGINE ───
+const $ = id => document.getElementById(id);
+const app = () => $('app');
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') e.className = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children) {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  }
+  return e;
+}
+
+function render() {
+  const a = app();
+  a.innerHTML = '';
+  const views = {
+    LOAD: vLoad,
+    SETTINGS: vSettings,
+    PLAYING: vPlaying,
+    DONE: vDone,
+  };
+  (views[S.view] || vLoad)(a);
+}
+
+function go(view, updates) {
+  Object.assign(S, updates || {});
+  S.view = view;
+  render();
+  window.scrollTo(0, 0);
+}
+
+// ─── TTS ENGINE ───
+let voices = [];
+
+function loadVoices() {
+  voices = speechSynthesis.getVoices();
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+function getEnglishVoices() {
+  const en = voices.filter(v => v.lang.startsWith('en'));
+  return en.length ? en : voices;
+}
+
+function getSelectedVoice() {
+  if (S.voiceURI) return voices.find(v => v.voiceURI === S.voiceURI) || null;
+  // Default: prefer a calm-sounding voice
+  const prefs = ['Google UK English Female', 'Samantha', 'Karen', 'Daniel', 'Google UK English Male'];
+  for (const name of prefs) {
+    const v = voices.find(v => v.name.includes(name));
+    if (v) return v;
+  }
+  const en = getEnglishVoices();
+  return en[0] || null;
+}
+
+function speakText(text) {
+  return new Promise((resolve, reject) => {
+    speechSynthesis.cancel();
+
+    // Chunk into sentences to avoid browser cutoff
+    const chunks = text.match(/[^.!?\n]+[.!?\n]?/g) || [text];
+    const merged = [];
+    let buf = '';
+    for (const c of chunks) {
+      if ((buf + c).length > 180) {
+        if (buf) merged.push(buf.trim());
+        buf = c;
+      } else {
+        buf += c;
+      }
+    }
+    if (buf.trim()) merged.push(buf.trim());
+
+    let i = 0;
+    function next() {
+      if (i >= merged.length) { resolve(); return; }
+      const msg = new SpeechSynthesisUtterance(merged[i]);
+      msg.rate = S.rate;
+      msg.pitch = 0.95;
+      const voice = getSelectedVoice();
+      if (voice) msg.voice = voice;
+      msg.onend = () => { i++; next(); };
+      msg.onerror = (e) => {
+        if (e.error === 'canceled') { reject('canceled'); return; }
+        i++; next();
+      };
+      currentUtterance = msg;
+      speechSynthesis.speak(msg);
+    }
+    next();
+  });
+}
+
+function stopSpeech() {
+  speechSynthesis.cancel();
+  clearInterval(pauseTimer);
+  pauseTimer = null;
+}
+
+// ─── PHASE PLAYBACK ───
+async function playPhase(index) {
+  if (index >= S.session.phases.length) {
+    S.session.completed = true;
+    S.session.user_responses = { ...S.responses };
+    saveCompletedSession(S.session);
+    go('DONE');
+    return;
+  }
+
+  S.phaseIndex = index;
+  S.playState = 'speaking';
+  render();
+
+  const phase = S.session.phases[index];
+
+  try {
+    await speakText(phase.narration);
+  } catch (e) {
+    if (e === 'canceled') return; // user stopped
+  }
+
+  // After narration, enter pause/prompt mode
+  if (phase.prompt) {
+    S.playState = 'prompt';
+    S.pauseRemaining = phase.pause_seconds;
+    render();
+    startPauseCountdown(() => playPhase(index + 1));
+  } else {
+    // No prompt — just a breathing pause
+    S.playState = 'paused';
+    S.pauseRemaining = phase.pause_seconds;
+    render();
+    startPauseCountdown(() => playPhase(index + 1));
+  }
+}
+
+function startPauseCountdown(onComplete) {
+  clearInterval(pauseTimer);
+  const startTime = Date.now();
+  const duration = S.pauseRemaining * 1000;
+
+  pauseTimer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+    S.pauseRemaining = remaining;
+
+    // Update timer display without full re-render
+    const timerEl = $('pause-timer');
+    if (timerEl) timerEl.textContent = formatTime(remaining);
+
+    if (remaining <= 0) {
+      clearInterval(pauseTimer);
+      pauseTimer = null;
+      onComplete();
+    }
+  }, 250);
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function advanceEarly() {
+  clearInterval(pauseTimer);
+  pauseTimer = null;
+  playPhase(S.phaseIndex + 1);
+}
+
+// ─── VIEWS ───
+
+const PHASE_LABELS = {
+  grounding: 'Grounding',
+  wish: 'Wish',
+  outcome: 'Outcome',
+  obstacle: 'Obstacle',
+  plan: 'Plan',
+  close: 'Close',
+};
+
+function vLoad(a) {
+  // Check URL param first
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session');
+  if (sessionId) {
+    const session = loadSessionById(sessionId);
+    if (session) {
+      S.session = session;
+      go('SETTINGS');
+      return;
+    }
+  }
+
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' }, 'WOOP Player'));
+  a.appendChild(el('p', { className: 'sub-text center' }, 'Load a session and put your headphones on.'));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Saved sessions
+  const sessions = loadSessions();
+  if (sessions.length > 0) {
+    a.appendChild(el('h2', null, 'Your sessions'));
+    a.appendChild(el('div', { className: 'spacer' }));
+
+    const list = el('div', { className: 'session-list' });
+    // Show most recent first
+    const sorted = [...sessions].reverse();
+    for (const session of sorted.slice(0, 10)) {
+      const date = new Date(session.ts);
+      const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const item = el('div', { className: 'session-item', onClick: () => {
+        S.session = session;
+        go('SETTINGS');
+      }},
+        el('div', { className: 'session-date' }, dateStr + (session.completed ? ' \u2714' : '')),
+        el('div', { className: 'session-input' }, session.input),
+      );
+      list.appendChild(item);
+    }
+    a.appendChild(list);
+    a.appendChild(el('div', { className: 'spacer' }));
+  }
+
+  // File upload
+  a.appendChild(el('p', { className: 'sub-text center' }, 'Or load a .woop.json file:'));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  const fileInput = el('input', {
+    type: 'file',
+    accept: '.json,.woop.json',
+    style: 'display: none;',
+  });
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const session = JSON.parse(ev.target.result);
+        if (session.version && session.phases) {
+          S.session = session;
+          go('SETTINGS');
+        }
+      } catch (err) {}
+    };
+    reader.readAsText(file);
+  });
+  a.appendChild(fileInput);
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => fileInput.click() }, 'Load file'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      window.open('woop-generate.html', '_self');
+    }}, 'Create a new session'),
+  ));
+}
+
+function vSettings(a) {
+  const session = S.session;
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' }, 'Ready to begin'));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('div', { className: 'gentle-box' },
+    el('p', { className: 'sub-text' }, 'Session:'),
+    el('p', null, session.input),
+  ));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Voice settings
+  const settingsRow = el('div', { className: 'settings-row' });
+
+  // Voice select
+  const voiceLabel = el('label', null, 'Voice: ');
+  const voiceSelect = el('select', { 'aria-label': 'Select voice' });
+  const enVoices = getEnglishVoices();
+  for (const v of enVoices) {
+    const opt = el('option', { value: v.voiceURI }, v.name.replace(/Microsoft |Google /, ''));
+    if (getSelectedVoice() && v.voiceURI === getSelectedVoice().voiceURI) opt.selected = true;
+    voiceSelect.appendChild(opt);
+  }
+  voiceSelect.addEventListener('change', () => { S.voiceURI = voiceSelect.value; });
+  voiceLabel.appendChild(voiceSelect);
+  settingsRow.appendChild(voiceLabel);
+
+  // Speed
+  const speedLabel = el('label', null, 'Speed: ');
+  const speedSelect = el('select', { 'aria-label': 'Playback speed' });
+  const speeds = [
+    { val: 0.7, label: '0.7x (slow)' },
+    { val: 0.85, label: '0.85x (default)' },
+    { val: 1.0, label: '1.0x (normal)' },
+    { val: 1.15, label: '1.15x (quick)' },
+  ];
+  for (const sp of speeds) {
+    const opt = el('option', { value: String(sp.val) }, sp.label);
+    if (sp.val === S.rate) opt.selected = true;
+    speedSelect.appendChild(opt);
+  }
+  speedSelect.addEventListener('change', () => { S.rate = parseFloat(speedSelect.value); });
+  speedLabel.appendChild(speedSelect);
+  settingsRow.appendChild(speedLabel);
+
+  a.appendChild(settingsRow);
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Test voice
+  a.appendChild(el('button', { className: 'btn btn-escape', onClick: () => {
+    speakText("This is how your session will sound. Adjust the voice and speed if you'd like.").catch(() => {});
+  }}, 'Test voice'));
+
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('p', { className: 'hint' },
+    'Put your headphones on. Have pen and paper ready.'));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => {
+      S.responses = {};
+      S.phaseIndex = 0;
+      go('PLAYING');
+      playPhase(0);
+    }}, 'Begin session'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      stopSpeech();
+      S.session = null;
+      go('LOAD');
+    }}, 'Go back'),
+  ));
+
+  a.appendChild(el('div', { className: 'spacer' }));
+  a.appendChild(el('p', { className: 'hint' },
+    el('kbd', null, 'Space'), ' play/pause \u00a0 ',
+    el('kbd', null, '\u2192'), ' skip \u00a0 ',
+    el('kbd', null, 'Esc'), ' stop',
+  ));
+}
+
+function vPlaying(a) {
+  const session = S.session;
+  const phase = session.phases[S.phaseIndex];
+  const total = session.phases.length;
+  const progress = ((S.phaseIndex + (S.playState === 'speaking' ? 0.5 : 1)) / total) * 100;
+
+  // Progress bar
+  const bar = el('div', { className: 'progress-bar' },
+    el('div', { className: 'progress-fill', style: 'width: ' + progress + '%' }),
+  );
+  a.appendChild(bar);
+  a.appendChild(el('p', { className: 'progress-text' },
+    (S.phaseIndex + 1) + ' of ' + total));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Phase label
+  a.appendChild(el('p', { className: 'phase-label' }, PHASE_LABELS[phase.phase] || phase.phase));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  if (S.playState === 'speaking') {
+    // Show narration text (subtle, for following along)
+    a.appendChild(el('div', { className: 'narration-card' },
+      el('p', null, phase.narration),
+    ));
+  } else if (S.playState === 'prompt') {
+    // Show prompt card
+    const card = el('div', { className: 'prompt-card' });
+    card.appendChild(el('p', null, phase.prompt));
+
+    const ta = el('textarea', {
+      className: 'response-input',
+      placeholder: 'Type here, or use pen and paper...',
+      'aria-label': 'Your response for ' + phase.phase,
+    });
+    ta.value = S.responses[phase.phase] || '';
+    ta.addEventListener('input', () => { S.responses[phase.phase] = ta.value; });
+    card.appendChild(ta);
+    card.appendChild(el('p', { className: 'note' }, "Pen and paper is fine. This is optional."));
+    a.appendChild(card);
+
+    a.appendChild(el('div', { className: 'spacer' }));
+    a.appendChild(el('p', { className: 'timer-display', id: 'pause-timer' }, formatTime(S.pauseRemaining)));
+  } else if (S.playState === 'paused') {
+    // Breathing pause (grounding / close)
+    a.appendChild(el('div', { className: 'breathing-circle' }));
+    a.appendChild(el('div', { className: 'spacer' }));
+    a.appendChild(el('p', { className: 'timer-display', id: 'pause-timer' }, formatTime(S.pauseRemaining)));
+  }
+
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Controls
+  a.appendChild(el('div', { className: 'btn-group' },
+    (S.playState === 'prompt' || S.playState === 'paused')
+      ? el('button', { className: 'btn btn-primary', onClick: advanceEarly }, "I'm ready")
+      : null,
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      stopSpeech();
+      // Save partial responses
+      S.session.user_responses = { ...S.responses };
+      saveCompletedSession(S.session);
+      go('LOAD');
+    }}, 'Stop session'),
+  ));
+}
+
+function vDone(a) {
+  const session = S.session;
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' }, "You did the work."));
+  a.appendChild(el('p', { className: 'micro-msg' }, "Whatever happens next is a bonus."));
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+
+  // Summary
+  for (const phase of session.phases) {
+    if (phase.phase === 'grounding') continue; // skip grounding in summary
+
+    const card = el('div', { className: 'summary-phase' });
+    card.appendChild(el('h3', null, PHASE_LABELS[phase.phase] || phase.phase));
+
+    // Show narration (collapsed)
+    const narr = el('p', { className: 'narration' });
+    narr.textContent = phase.narration.substring(0, 80) + (phase.narration.length > 80 ? '...' : '');
+    card.appendChild(narr);
+
+    // Show response if any
+    const response = S.responses[phase.phase];
+    if (response && response.trim()) {
+      card.appendChild(el('p', { className: 'response' }, response));
+    }
+
+    a.appendChild(card);
+  }
+
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => exportTranscript() }, 'Export transcript (JSONL)'),
+    el('button', { className: 'btn btn-warm', onClick: () => copyMarkdown() }, 'Copy as markdown'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      // Replay
+      S.responses = {};
+      S.phaseIndex = 0;
+      go('SETTINGS');
+    }}, 'Replay session'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      S.session = null;
+      S.responses = {};
+      go('LOAD');
+    }}, 'Back to sessions'),
+  ));
+}
+
+// ─── EXPORT ───
+function exportTranscript() {
+  const session = S.session;
+  const entry = {
+    id: session.id,
+    ts: session.ts,
+    input: session.input,
+    phases: session.phases.map(p => ({
+      phase: p.phase,
+      prompt: p.prompt,
+      response: S.responses[p.phase] || null,
+    })),
+    completed: true,
+  };
+
+  const jsonl = JSON.stringify(entry);
+  const blob = new Blob([jsonl + '\n'], { type: 'application/x-ndjson' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'woop-transcript-' + new Date().toISOString().split('T')[0] + '.jsonl';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyMarkdown() {
+  const session = S.session;
+  let md = '## WOOP Session\n';
+  md += '**Date:** ' + new Date(session.ts).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + '\n';
+  md += '**Stuck on:** ' + session.input + '\n\n';
+
+  for (const phase of session.phases) {
+    if (phase.phase === 'grounding') continue;
+    const label = PHASE_LABELS[phase.phase] || phase.phase;
+    md += '### ' + label + '\n';
+    if (phase.prompt) md += '*' + phase.prompt + '*\n';
+    const resp = S.responses[phase.phase];
+    if (resp && resp.trim()) md += '\n' + resp + '\n';
+    md += '\n';
+  }
+
+  navigator.clipboard.writeText(md).catch(() => {});
+}
+
+// ─── KEYBOARD SHORTCUTS ───
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    if (S.view === 'PLAYING' && (S.playState === 'prompt' || S.playState === 'paused')) {
+      advanceEarly();
+    }
+  }
+
+  if (e.key === 'ArrowRight') {
+    if (S.view === 'PLAYING') {
+      e.preventDefault();
+      stopSpeech();
+      advanceEarly();
+    }
+  }
+
+  if (e.key === 'Escape') {
+    if (S.view === 'PLAYING') {
+      stopSpeech();
+      S.session.user_responses = { ...S.responses };
+      saveCompletedSession(S.session);
+      go('LOAD');
+    }
+  }
+});
+
+// ─── INIT ───
+render();
+</script>
+</body>
+</html>

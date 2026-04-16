@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOOP Session</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f7f5f0;
+  --text: #3a3a3a;
+  --text-muted: #8a8a8a;
+  --primary: #6b9080;
+  --primary-hover: #5a7d6e;
+  --accent: #cce3de;
+  --warm: #dda77b;
+  --gentle: #eae4e9;
+  --escape-bg: transparent;
+  --escape-text: #7a7a7a;
+  --card-bg: #fff;
+  --btn-text: #fff;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a2e;
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --primary: #7db39a;
+    --primary-hover: #6a9f87;
+    --accent: #2a3a35;
+    --warm: #c4956e;
+    --gentle: #2a2535;
+    --card-bg: #252540;
+    --btn-text: #1a1a2e;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+body {
+  font-family: var(--font);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.6rem; font-weight: 600; line-height: 1.3; }
+h2 { font-size: 1.3rem; font-weight: 500; line-height: 1.4; }
+.hero-text { font-size: 1.5rem; font-weight: 400; line-height: 1.5; text-align: center; }
+.sub-text { color: var(--text-muted); font-size: 0.95rem; }
+.center { text-align: center; }
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  line-height: 1.4;
+}
+.btn:active { transform: scale(0.98); }
+.btn:focus-visible { outline: 3px solid var(--warm); outline-offset: 2px; }
+.btn-primary { background: var(--primary); color: var(--btn-text); font-weight: 500; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-warm { background: var(--warm); color: #fff; font-weight: 500; }
+.btn-escape { background: transparent; color: var(--text-muted); font-size: 0.95rem; min-height: 44px; }
+.btn-escape:hover { color: var(--text); }
+.btn-group { display: flex; flex-direction: column; gap: 0.75rem; }
+.spacer { height: 1rem; }
+.spacer-lg { height: 2rem; }
+.micro-msg { color: var(--primary); font-size: 0.9rem; text-align: center; font-style: italic; min-height: 1.4em; }
+
+.input-field {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 1.1rem;
+  background: var(--card-bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 80px;
+}
+.input-field:focus { outline: none; border-color: var(--primary); }
+
+.gentle-box {
+  background: var(--gentle);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.phase-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 0.75rem;
+}
+.phase-card h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+.phase-card p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.phase-card .prompt-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--accent);
+}
+.phase-card textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 60px;
+  margin-top: 0.5rem;
+}
+.phase-card textarea:focus { outline: none; border-color: var(--primary); }
+
+.brand {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.5;
+  margin-top: 2rem;
+}
+
+.api-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+.api-section summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.api-section .api-inner {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.api-section input[type="password"],
+.api-section input[type="text"] {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  background: var(--bg);
+  color: var(--text);
+}
+.api-section input:focus { outline: none; border-color: var(--primary); }
+.api-section .note { font-size: 0.8rem; color: var(--text-muted); }
+
+.loading-dot {
+  display: inline-block;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 380px) {
+  #app { padding: 1.5rem 1rem; }
+  .hero-text { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ─── STATE ───
+const S = {
+  view: 'WELCOME',
+  input: '',
+  session: null,
+  apiKey: localStorage.getItem('woop_api_key') || '',
+  useApi: false,
+  generating: false,
+};
+
+// ─── MESSAGES ───
+const ENCOURAGEMENT = [
+  "Naming what's stuck is the hardest part. You just did it.",
+  "You don't have to do the thing yet. Just look at it.",
+  "This is not a test. There are no wrong answers.",
+  "The fact that you're here means something is shifting.",
+  "You're allowed to find this hard.",
+  "Starting is the part your brain fights hardest. You're winning.",
+];
+
+const COMPLETION_MSG = [
+  "Session ready. You did the thinking. That counts.",
+  "Your session is built. The hard part was showing up.",
+  "That's it. Your guided session is waiting for you.",
+  "Ready to go. Put your headphones on whenever you are.",
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ─── NARRATION VARIANTS ───
+// 3-4 variants per phase. {input} is replaced with user's stuck-point.
+
+const NARRATIONS = {
+  grounding: [
+    "Let's begin. Close your eyes if that feels comfortable. Take a slow breath in through your nose... hold for a moment... and release through your mouth. Again. In... hold... and out. One more time. Good. You're here. That's enough for now.",
+    "Before we start, let's land in this moment. Breathe in slowly through your nose... let your shoulders drop... and breathe out through your mouth. Again. In... and out. Let the noise of the day settle. There's no rush here.",
+    "Find a comfortable position. Let your hands rest. Breathe in slowly... hold... and let it go. One more. In... hold... release. Whatever was happening before this moment can wait. Right now, it's just you and this.",
+    "Close your eyes if you'd like. Take a deep breath in... feel your chest expand... and slowly let it out. Again. In... and out. Good. We're not solving anything yet. We're just arriving.",
+  ],
+  wish: [
+    "You said you're stuck on: {input}. Let's look at this clearly. Not the big picture, not everything that comes with it. Just the one specific thing you want to do. The concrete action. Say it out loud, or write it down now.",
+    "Here's what you brought today: {input}. Let's turn this into something you can hold. What is the single, specific thing you want to happen? Not the whole project. Not the ideal outcome. Just the next real action. Name it now.",
+    "You're here because of this: {input}. That took courage to name. Now let's sharpen it. What's the one concrete step you'd take if nothing was in the way? Write it down. Keep it small and real.",
+    "So the thing on your mind is: {input}. Let's not try to solve everything. What's the one specific task hiding inside this? The thing that, if you did it, would move this forward? Name it now. Write it down.",
+  ],
+  outcome: [
+    "Now imagine you've done it. It's finished. Picture the moment right after. What does that feel like? Maybe it's relief. Maybe it's just quiet. Let that feeling land for a moment. What's different about your day now that this is handled?",
+    "Fast forward. You've done the thing. It's behind you. How does your body feel? What's the first thing you notice? Relief? Lightness? A weight lifted? Stay with that feeling. Let it become real for a moment. Write down what you see.",
+    "Picture this: it's later today, and the thing is done. You did it. What does that version of your day look like? How does your evening feel different? Let yourself feel the relief of completion. Describe it now.",
+    "Imagine the task is complete. You're on the other side. What changed? Maybe it's something small — a quieter mind, a clearer afternoon. Let yourself feel that. Hold onto it. Write down what comes to you.",
+  ],
+  obstacle: [
+    "Something has been stopping you. Not the external stuff — not 'I don't have time' or 'I'm too busy.' The internal thing. Is it fear of what might happen? Is it the energy it takes to start? Is it shame about how long it's taken? Name the real barrier. Be honest with yourself. There's no wrong answer here.",
+    "Now let's look at what's in the way. And I don't mean the practical stuff. What's the feeling that comes up when you think about doing this? Dread? Confusion? A kind of heaviness? Whatever it is, it's valid. Name it now. Write it down.",
+    "Here's the part that matters most. What's actually stopping you? Not time, not resources — those are usually covers. What's the feeling underneath? The real reason you've been avoiding this? It might be uncomfortable to name. That's okay. Name it anyway.",
+    "Something inside you resists this task. Let's look at it without judgement. When you imagine starting, what feeling shows up? Anxiety? Overwhelm? A fear of getting it wrong? Whatever it is, write it down. Just acknowledging it changes its power.",
+  ],
+  plan: [
+    "Now let's make a simple plan. We use 'if-then' statements because they work with your brain instead of against it. When your obstacle shows up — and it will — what's one small action you can take? For example: 'If I feel dread when I pick up the phone, then I will stand up and dial before the feeling peaks.' Write yours now.",
+    "Time to build a bridge over the obstacle. Here's how: an if-then plan. 'If I notice myself avoiding this, then I will...' and you fill in one tiny action. Not the whole task — just the first five seconds of starting. What would that look like? Write it down.",
+    "Let's connect the obstacle to an action. Complete this sentence: 'If I feel [your obstacle], then I will [one small move].' The move can be tiny. Standing up. Opening the app. Picking up the pen. Your brain responds to specific triggers better than willpower. Write your if-then now.",
+    "Here's your final step. Take your obstacle and pair it with a response. 'If [obstacle] shows up, then I will [action].' Keep the action almost laughably small. The smaller it is, the more likely your brain will do it. Write it now.",
+  ],
+  close: [
+    "That's the whole thing. You named what you want, felt the outcome, faced what's in the way, and made a plan. You don't have to act on it right now. But you've done the hard thinking. That counts. Take one more breath. When you're ready, open your eyes.",
+    "You're done. Four steps. You showed up, you were honest, and you made a plan. That is real work. Whatever happens next is a bonus. Take a breath. Open your eyes when you're ready.",
+    "And that's it. You named it, imagined it done, looked at what's really in the way, and built a bridge. That's more than most people do. Take a breath. The session is yours. Open your eyes whenever you're ready.",
+    "You've finished. You took something stuck and gave it shape. A wish, an outcome, an honest look at the obstacle, and a plan. That's powerful. Breathe. Open your eyes. Go gently.",
+  ],
+};
+
+// ─── SESSION BUILDER ───
+function buildSession(input) {
+  const now = new Date();
+  return {
+    version: 1,
+    id: 'woop_' + Date.now(),
+    ts: now.toISOString(),
+    input: input,
+    phases: [
+      { phase: 'grounding', narration: pick(NARRATIONS.grounding), pause_seconds: 30, prompt: null },
+      { phase: 'wish', narration: pick(NARRATIONS.wish).replace(/\{input\}/g, input), pause_seconds: 45, prompt: 'Write down your wish \u2014 the specific task, as concretely as you can.' },
+      { phase: 'outcome', narration: pick(NARRATIONS.outcome), pause_seconds: 60, prompt: 'Describe the feeling and scene after completing this task.' },
+      { phase: 'obstacle', narration: pick(NARRATIONS.obstacle), pause_seconds: 60, prompt: 'Name your internal obstacle \u2014 what is really stopping you?' },
+      { phase: 'plan', narration: pick(NARRATIONS.plan), pause_seconds: 60, prompt: "Write your if-then plan: 'If [obstacle], then I will [action].'" },
+      { phase: 'close', narration: pick(NARRATIONS.close), pause_seconds: 10, prompt: null },
+    ],
+    completed: false,
+    user_responses: {},
+  };
+}
+
+// ─── API GENERATION ───
+async function buildSessionAPI(input) {
+  const template = buildSession(input);
+  const systemPrompt = `You are a calm, warm executive function coach. You guide people through WOOP sessions (Wish, Outcome, Obstacle, Plan) using a meditative, gentle tone.
+
+You will receive a JSON session template and the user's stuck-point. Fill ONLY the "narration" field in each phase. Keep each narration under 80 words. Reference the user's specific input naturally in the "wish" phase. Do not add, remove, or reorder phases. Do not change pause_seconds or prompt fields.
+
+Return ONLY valid JSON matching the exact structure provided. No markdown, no explanation.`;
+
+  const userPrompt = `The user is stuck on: "${input}"
+
+Fill in the narration fields in this session template:
+${JSON.stringify(template, null, 2)}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': S.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1500,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('API error: ' + res.status + ' ' + err);
+  }
+
+  const data = await res.json();
+  const text = data.content[0].text;
+  return JSON.parse(text);
+}
+
+// ─── PERSISTENCE ───
+function saveSessions(sessions) {
+  try { localStorage.setItem('woop_sessions', JSON.stringify(sessions)); } catch(e) {}
+}
+
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem('woop_sessions');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+
+function saveSession(session) {
+  const sessions = loadSessions();
+  sessions.push(session);
+  saveSessions(sessions);
+}
+
+function lastSessionTime() {
+  const sessions = loadSessions();
+  if (!sessions.length) return null;
+  return new Date(sessions[sessions.length - 1].ts);
+}
+
+function timeAgo(date) {
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min' + (mins === 1 ? '' : 's') + ' ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.floor(hrs / 24);
+  return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+}
+
+// ─── RENDER ENGINE ───
+const $ = id => document.getElementById(id);
+const app = () => $('app');
+
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') e.className = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+      else e.setAttribute(k, v);
+    }
+  }
+  for (const c of children) {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  }
+  return e;
+}
+
+function render() {
+  const a = app();
+  a.innerHTML = '';
+  const views = { WELCOME: vWelcome, INPUT: vInput, GENERATING: vGenerating, PREVIEW: vPreview, SAVED: vSaved };
+  (views[S.view] || vWelcome)(a);
+}
+
+function go(view, updates) {
+  Object.assign(S, updates || {});
+  S.view = view;
+  render();
+  window.scrollTo(0, 0);
+}
+
+// ─── GREETING ───
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Morning';
+  if (h < 17) return 'Afternoon';
+  return 'Evening';
+}
+
+// ─── VIEWS ───
+
+function vWelcome(a) {
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' }, greeting() + ', Loz.'));
+  a.appendChild(el('p', { className: 'hero-text' }, "Let's build you a session."));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  const last = lastSessionTime();
+  if (last) {
+    a.appendChild(el('p', { className: 'sub-text center' }, 'Last session: ' + timeAgo(last)));
+  }
+
+  const count = loadSessions().length;
+  if (count > 0) {
+    a.appendChild(el('p', { className: 'sub-text center' }, count + ' session' + (count === 1 ? '' : 's') + ' created'));
+  }
+
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'micro-msg' }, pick(ENCOURAGEMENT)));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => go('INPUT') }, "Let's go"),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      // nothing — just acknowledge
+      a.innerHTML = '';
+      a.appendChild(el('div', { className: 'spacer-lg' }));
+      a.appendChild(el('p', { className: 'hero-text' }, "That's okay."));
+      a.appendChild(el('p', { className: 'sub-text center' }, "This will be here when you're ready."));
+    }}, 'Not right now'),
+  ));
+}
+
+function vInput(a) {
+  a.appendChild(el('h2', { className: 'center' }, "What are you stuck on?"));
+  a.appendChild(el('p', { className: 'sub-text center' }, "A task, a call, an email, a decision. Whatever is weighing on you."));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  const ta = el('textarea', {
+    className: 'input-field',
+    placeholder: "I need to phone the bank about my account but I keep avoiding it...",
+    'aria-label': 'What are you stuck on',
+    style: 'min-height: 120px;',
+  });
+  ta.value = S.input || '';
+  ta.addEventListener('input', () => { S.input = ta.value; });
+  a.appendChild(ta);
+
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // API settings
+  const details = el('details', { className: 'api-section' });
+  const summary = el('summary', null, 'AI generation (optional)');
+  details.appendChild(summary);
+
+  const inner = el('div', { className: 'api-inner' });
+  inner.appendChild(el('p', { className: 'note' }, 'Add a Claude API key for AI-varied narration. Without it, built-in templates are used \u2014 works great offline.'));
+
+  const keyInput = el('input', {
+    type: 'password',
+    placeholder: 'sk-ant-...',
+    'aria-label': 'Claude API key',
+  });
+  keyInput.value = S.apiKey;
+  keyInput.addEventListener('input', () => {
+    S.apiKey = keyInput.value;
+    localStorage.setItem('woop_api_key', S.apiKey);
+  });
+  inner.appendChild(keyInput);
+  details.appendChild(inner);
+  a.appendChild(details);
+
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: async () => {
+      if (!S.input.trim()) { ta.focus(); return; }
+      if (S.apiKey.trim()) {
+        go('GENERATING');
+        try {
+          const session = await buildSessionAPI(S.input.trim());
+          S.session = session;
+          go('PREVIEW');
+        } catch (err) {
+          // Fallback to template on API failure
+          S.session = buildSession(S.input.trim());
+          go('PREVIEW');
+        }
+      } else {
+        S.session = buildSession(S.input.trim());
+        go('PREVIEW');
+      }
+    }}, 'Build my session'),
+    el('button', { className: 'btn btn-escape', onClick: () => go('WELCOME') }, 'Not right now'),
+  ));
+
+  setTimeout(() => ta.focus(), 100);
+}
+
+function vGenerating(a) {
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' },
+    'Building your session',
+    el('span', { className: 'loading-dot' }, ' ...'),
+  ));
+  a.appendChild(el('div', { className: 'spacer' }));
+  a.appendChild(el('p', { className: 'sub-text center' }, 'The AI is writing your guided narration.'));
+}
+
+function vPreview(a) {
+  const session = S.session;
+  if (!session) { go('WELCOME'); return; }
+
+  a.appendChild(el('h2', { className: 'center' }, 'Your session is ready'));
+  a.appendChild(el('p', { className: 'sub-text center' }, 'Review and edit the narration for each phase.'));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  // Show the stuck-point
+  a.appendChild(el('div', { className: 'gentle-box' },
+    el('p', { className: 'sub-text' }, 'Stuck on:'),
+    el('p', null, session.input),
+  ));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  const PHASE_LABELS = {
+    grounding: 'Grounding',
+    wish: 'Wish',
+    outcome: 'Outcome',
+    obstacle: 'Obstacle',
+    plan: 'Plan',
+    close: 'Close',
+  };
+
+  for (const phase of session.phases) {
+    const card = el('div', { className: 'phase-card' });
+    card.appendChild(el('h3', null, PHASE_LABELS[phase.phase] || phase.phase));
+
+    const ta = el('textarea', null);
+    ta.value = phase.narration;
+    ta.addEventListener('input', () => { phase.narration = ta.value; });
+    card.appendChild(ta);
+
+    if (phase.prompt) {
+      card.appendChild(el('p', { className: 'prompt-text' }, 'Pause prompt: ' + phase.prompt));
+    }
+
+    const timeNote = el('p', { className: 'sub-text' },
+      'Pause: ' + phase.pause_seconds + 's');
+    timeNote.style.fontSize = '0.8rem';
+    timeNote.style.marginTop = '0.25rem';
+    card.appendChild(timeNote);
+
+    a.appendChild(card);
+  }
+
+  a.appendChild(el('div', { className: 'spacer' }));
+  a.appendChild(el('p', { className: 'micro-msg' }, pick(COMPLETION_MSG)));
+  a.appendChild(el('div', { className: 'spacer' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => {
+      saveSession(session);
+      go('SAVED');
+    }}, 'Save session'),
+    el('button', { className: 'btn btn-warm', onClick: () => {
+      downloadSession(session);
+    }}, 'Download .woop.json'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      // Regenerate
+      if (S.apiKey.trim()) {
+        go('GENERATING');
+        buildSessionAPI(S.input.trim()).then(s => {
+          S.session = s;
+          go('PREVIEW');
+        }).catch(() => {
+          S.session = buildSession(S.input.trim());
+          go('PREVIEW');
+        });
+      } else {
+        S.session = buildSession(S.input.trim());
+        go('PREVIEW');
+      }
+    }}, 'Regenerate'),
+    el('button', { className: 'btn btn-escape', onClick: () => go('INPUT') }, 'Go back'),
+  ));
+}
+
+function vSaved(a) {
+  const session = S.session;
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+  a.appendChild(el('p', { className: 'hero-text' }, "Session saved."));
+  a.appendChild(el('div', { className: 'spacer' }));
+  a.appendChild(el('p', { className: 'micro-msg' }, "Put your headphones on whenever you're ready."));
+  a.appendChild(el('div', { className: 'spacer-lg' }));
+
+  a.appendChild(el('div', { className: 'btn-group' },
+    el('button', { className: 'btn btn-primary', onClick: () => {
+      // Open player with session ID
+      const playerUrl = 'woop-player.html?session=' + encodeURIComponent(session.id);
+      window.open(playerUrl, '_blank');
+    }}, 'Open in player'),
+    el('button', { className: 'btn btn-warm', onClick: () => {
+      downloadSession(session);
+    }}, 'Download .woop.json'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      navigator.clipboard.writeText(JSON.stringify(session, null, 2)).then(() => {
+        // brief visual confirmation
+      }).catch(() => {});
+    }}, 'Copy JSON to clipboard'),
+    el('button', { className: 'btn btn-escape', onClick: () => {
+      S.input = '';
+      S.session = null;
+      go('WELCOME');
+    }}, 'Create another'),
+  ));
+}
+
+// ─── DOWNLOAD ───
+function downloadSession(session) {
+  const blob = new Blob([JSON.stringify(session, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = session.id + '.woop.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ─── INIT ───
+render();
+</script>
+</body>
+</html>
